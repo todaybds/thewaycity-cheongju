@@ -75,12 +75,13 @@ export default async function handler(req, res) {
 
         const result = await response.json();
 
-        if (response.ok) {
-            return res.status(200).json({ success: true, id: result.dataItem?._id || "saved" });
-        } else {
-            console.error("Wix API Error:", result);
-            return res.status(500).json({ error: result.message || "Wix API 오류" });
-        }
+        // 임시 디버그: 모든 응답 반환
+        return res.status(response.ok ? 200 : 500).json({
+            success: response.ok,
+            status: response.status,
+            wix_result: result,
+            sent_data: dataItem
+        });
     } catch (error) {
         console.error("Fetch Error:", error);
         return res.status(500).json({ error: "서버 오류" });
