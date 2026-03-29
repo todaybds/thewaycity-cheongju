@@ -289,11 +289,11 @@ $(function() {
 
 	<div class="form-row">
 		<div class="form-label">이름 <span class="req">*</span></div>
-		<div class="form-input"><input type="text" id="name" maxlength="20" placeholder="이름을 입력해주세요."></div>
+		<div class="form-input"><input type="text" id="name" maxlength="20" placeholder="이름을 입력해주세요." inputmode="text" lang="ko"></div>
 	</div>
 	<div class="form-row">
 		<div class="form-label">휴대전화 <span class="req">*</span></div>
-		<div class="form-input"><input type="tel" id="phone" maxlength="13" placeholder="숫자만 입력해주세요."></div>
+		<div class="form-input"><input type="tel" id="phone" maxlength="13" placeholder="010-0000-0000" inputmode="numeric"></div>
 	</div>
 	<div class="form-row">
 		<div class="form-label">관심평형</div>
@@ -391,11 +391,21 @@ $(function() {
 	document.getElementById('device').value = ss.getItem('device_type') || '';
 })();
 
-document.getElementById('phone').addEventListener('input', function(e) {
-	var v = e.target.value.replace(/[^0-9]/g, '');
-	if(v.length >= 3 && v.substring(0,3) !== '010') v = v.substring(0,2);
-	v = v.replace(/^(\d{0,3})(\d{0,4})(\d{0,4})$/, '$1-$2-$3').replace(/-+$/g, '');
-	e.target.value = v;
+// 전화번호: 010- 고정, 자동 하이픈
+document.getElementById('phone').addEventListener('focus', function() {
+	if(this.value === '') this.value = '010-';
+});
+document.getElementById('phone').addEventListener('input', function() {
+	var num = this.value.replace(/[^0-9]/g, '');
+	if(!num.startsWith('010')) num = '010' + num.replace(/^0?1?0?/, '');
+	var fmt = '';
+	if(num.length < 4) fmt = num;
+	else if(num.length < 8) fmt = num.substr(0,3) + '-' + num.substr(3);
+	else fmt = num.substr(0,3) + '-' + num.substr(3,4) + '-' + num.substr(7,4);
+	this.value = fmt;
+});
+document.getElementById('phone').addEventListener('keydown', function(e) {
+	if(this.value.length <= 4 && (e.key === 'Backspace' || e.key === 'Delete')) { e.preventDefault(); }
 });
 
 var isSubmitting = false;
