@@ -18,9 +18,9 @@ $(function () {
   // 햄버거 메뉴 열면 숨기고, 닫으면 올라오기
   $('.btn_all').on('click', function () {
     if ($(this).hasClass('close')) {
-      bar.addClass('hide');
-    } else {
       bar.removeClass('hide');
+    } else {
+      bar.addClass('hide');
     }
   });
 });
