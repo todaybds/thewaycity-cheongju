@@ -460,7 +460,7 @@ function submitForm() {
 			document.querySelectorAll('input[name="interest"]').forEach(function(c){ c.checked = false; });
 			document.querySelectorAll('input[name="agree"]').forEach(function(c){ c.checked = false; });
 		} else {
-			alert(JSON.stringify(result, null, 2));
+			alert(result.error || '등록에 실패했습니다. 다시 시도해주세요.');
 		}
 	})
 	.catch(function(){ alert('네트워크 오류가 발생했습니다. 다시 시도해주세요.'); })

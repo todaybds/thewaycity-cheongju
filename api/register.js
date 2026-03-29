@@ -36,9 +36,9 @@ export default async function handler(req, res) {
         String(now.getUTCMinutes()).padStart(2, '0');
 
     // Wix Data API로 전송
-    const WIX_API_KEY = process.env.WIX_API_KEY;
-    const WIX_SITE_ID = process.env.WIX_SITE_ID;
-    const WIX_COLLECTION_ID = process.env.WIX_COLLECTION_ID;
+    const WIX_API_KEY = (process.env.WIX_API_KEY || '').trim();
+    const WIX_SITE_ID = (process.env.WIX_SITE_ID || '').trim();
+    const WIX_COLLECTION_ID = (process.env.WIX_COLLECTION_ID || '').trim();
 
     const dataItem = {
         dataCollectionId: WIX_COLLECTION_ID,
@@ -79,16 +79,7 @@ export default async function handler(req, res) {
             return res.status(200).json({ success: true, id: result.dataItem?._id || "saved" });
         } else {
             console.error("Wix API Error:", result);
-            return res.status(500).json({
-                error: result.message || "Wix API 오류",
-                debug: {
-                    wix_response: result,
-                    status: response.status,
-                    site_id: WIX_SITE_ID,
-                    collection_id: WIX_COLLECTION_ID,
-                    api_key_prefix: WIX_API_KEY ? WIX_API_KEY.substring(0, 10) + '...' : 'NOT SET'
-                }
-            });
+            return res.status(500).json({ error: result.message || "Wix API 오류" });
         }
     } catch (error) {
         console.error("Fetch Error:", error);
