@@ -96,9 +96,9 @@ html, body {position:relative; overflow-x:hidden;}
 }
 .mcont01 .arrow {border:0; margin-top:-3vw; width:5vw;}
 .mcont01 .arrow_l, .mcont03 .arrow_l, .mcont06 .arrow_l {left:3%; transform:rotate(-180deg);}
-.mcont01 .arrow_l {left:10%;}
+.mcont01 .arrow_l {left:10%; display:none;}
 .mcont03 .arrow_r, .mcont06 .arrow_r {right:3%;}
-.mcont01 .arrow_r {right:10%;}
+.mcont01 .arrow_r {right:10%; display:none;}
 .mcont03 .pr_img {position:absolute; top:24vh; left:13%; border:#15243d 0.25vw solid; border-radius:100vw;}
 .mcont03 .pr_img .cycle-slideshow {position:absolute !important; top:0 !important; overflow:unset !important;}
 .mcont03 .pr_img .cycle-slide {position:absolute !important; top:0 !important;}
@@ -241,6 +241,19 @@ html, body {position:relative; overflow-x:hidden;}
 
 @media all and (max-width:1099px) {
 img {max-width:100%;}
+.mo_scroll_arrow {display:none;}
+@media all and (max-width:1099px) {
+.mo_scroll_arrow {
+	display:block; position:absolute; bottom:30px; left:50%; transform:translateX(-50%);
+	width:30px; height:30px; border-left:3px solid #fff; border-bottom:3px solid #fff;
+	transform:translateX(-50%) rotate(-45deg); animation:moArrowBounce 2s infinite;
+	z-index:1000; opacity:0.8;
+}
+@keyframes moArrowBounce {
+	0%,100% {bottom:30px;}
+	50% {bottom:15px;}
+}
+}
 .popup {left:-100%; width:100%; top:0;}
 .popup.on {left:0;}
 .popup form {width:100%; margin:0; top:0; left:0; position:relative; padding-top:0;}
@@ -426,7 +439,7 @@ $(document).on('click', '.soon02', function() {
 			<div class="top_bg_wrap cycle-slideshow"
 			data-cycle-swipe="false"
 			data-cycle-slides=".top_bg"
-			data-cycle-timeout="0"
+			data-cycle-timeout="5000"
 			data-cycle-fx="fade"
 			data-cycle-pager=".btn_roll .page"
 			data-cycle-prev=".mcont01 .arrow_l"
@@ -444,6 +457,7 @@ $(document).on('click', '.soon02', function() {
 			</div> -->
 			<img src="ver01/img/arrow_r.png" alt="" class="arrow arrow_l"/>
 			<img src="ver01/img/arrow_r.png" alt="" class="arrow arrow_r"/>
+			<div class="mo_scroll_arrow"></div>
 		</div>
 		<div class="mcont mcont02">
 			<dl>
@@ -752,7 +766,7 @@ $(function() {
 .popup_overlay{width:100%;height:100%;display:flex;justify-content:center;align-items:center;color:#fff}
 .popup_bg{position:absolute;width:100%;height:100%;background:#000;opacity:0.7;left:0;top:0;cursor:pointer}
 .popup_body{z-index:99999999;max-width:360px;width:80%;position:relative;text-align:center}
-.popup_close_x{color:#fff;text-align:center;font-size:16px;margin-bottom:12px;display:block;text-shadow:0 0 5px rgba(0,0,0,1);text-decoration:none;cursor:pointer}
+.popup_close_x{color:#fff !important;text-align:center;font-size:16px;margin-bottom:12px;display:block;text-shadow:0 0 5px rgba(0,0,0,1);text-decoration:none;cursor:pointer;position:relative;z-index:999999999}
 .pop_nav{width:90px;height:32px;position:relative;margin-top:12px;float:right;background:#fff;border-radius:50px;display:flex;justify-content:center;align-items:center;padding:0 2px}
 .pop_nav .swiper-pagination-fraction{width:50px;text-align:center;color:#000;font-size:13px;font-weight:500}
 .pop_nav .swiper-button-prev-pop,.pop_nav .swiper-button-next-pop{width:25px;height:100%;position:relative;cursor:pointer}
@@ -825,6 +839,7 @@ $(document).ready(function() {
 <script>
 function closePopMO(){document.getElementById('k_popup_mo').style.display='none'}
 </script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.4.6/css/swiper.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.4.6/js/swiper.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
