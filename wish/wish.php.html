@@ -214,14 +214,14 @@ $(function() {
 .guest-wrap .form-input{flex:1;display:flex;align-items:center;padding:16px 0 16px 10px;border-bottom:1px solid #e5e5e5}
 .guest-wrap .form-input input[type="text"],.guest-wrap .form-input input[type="tel"],.guest-wrap .form-input input[type="date"],.guest-wrap .form-input select{border:none;background:transparent;font-size:16px;color:#333;width:100%;max-width:350px;height:30px;padding:0;-webkit-appearance:none;appearance:none;border-radius:0;font-family:'Noto Sans KR',sans-serif}
 .guest-wrap .form-input input:focus,.guest-wrap .form-input select:focus{outline:none}
+.guest-wrap .form-row:focus-within .form-input{border-bottom-color:#d4a187}
 .guest-wrap .form-input input::placeholder{color:#aaa}
 .guest-wrap .form-input select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right center;background-size:18px;padding-right:25px;cursor:pointer}
-.resv-trigger{display:flex;align-items:center;justify-content:space-between;cursor:pointer;width:100%;max-width:350px}
+.resv-trigger{display:flex;align-items:center;cursor:pointer;width:100%;max-width:350px}
 .resv-trigger-text{font-size:15px;color:#aaa}
 .resv-trigger-text.has-value{color:#333;font-weight:500}
-.resv-trigger-icon{font-size:20px;color:#999}
-.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:99999;overflow-y:auto;justify-content:center;align-items:center;padding:20px;box-sizing:border-box}
-.modal-content-box{background:#fff;width:100%;max-width:380px;border-radius:16px;overflow:hidden;box-shadow:0 10px 60px rgba(0,0,0,0.2);display:flex;flex-direction:column;max-height:90vh;margin:auto}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:99999;justify-content:center;align-items:flex-end;padding:0;box-sizing:border-box}
+.modal-content-box{background:#fff;width:100%;max-width:480px;border-radius:16px 16px 0 0;overflow:hidden;box-shadow:0 -4px 40px rgba(0,0,0,0.15);display:flex;flex-direction:column;max-height:85vh;margin:0 auto}
 .modal-header{height:52px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:#fff;flex-shrink:0}
 .modal-title{font-size:16px;font-weight:600;color:#111;font-family:'Noto Sans KR',sans-serif}
 .modal-close-btn{font-size:20px;color:#333;cursor:pointer;background:none;border:none;font-weight:300;padding:0}
@@ -240,7 +240,7 @@ $(function() {
 .time-btn.active{background:#d4a187;color:#fff;border-color:#d4a187;font-weight:600}
 .msg-box{text-align:center;color:#999;padding:40px 0}
 .msg-text{font-size:14px;color:#999}
-@media(max-width:768px){.modal-overlay{padding:0;align-items:flex-end}.modal-content-box{border-radius:16px 16px 0 0;max-height:85vh;max-width:100%}}
+@media(max-width:768px){.modal-content-box{max-width:100%}}
 .guest-wrap .interest-tags{display:flex;gap:8px;flex-wrap:wrap}
 .guest-wrap .interest-tags label{display:inline-flex;align-items:center;padding:10px 20px;border:1px solid #ddd;border-radius:30px;font-size:15px;cursor:pointer;transition:all 0.2s;user-select:none}
 .guest-wrap .interest-tags label:has(input:checked){border-color:#15233d;background:#15233d;color:#fff}
@@ -250,13 +250,19 @@ $(function() {
 .guest-wrap .privacy-table tr:first-child th,.guest-wrap .privacy-table tr:first-child td{border-top:none}
 .guest-wrap .privacy-table th{width:180px;text-align:center;font-weight:500;color:#333;padding:15px 10px;border-bottom:1px solid #e5e5e5;background:#fafafa}
 .guest-wrap .privacy-table td{padding:15px 10px;border-bottom:1px solid #e5e5e5;color:#666;line-height:1.5}
-.guest-wrap .consent-row{display:flex;justify-content:space-between;align-items:center;padding:20px 0;font-size:14px;font-weight:500;margin-bottom:40px}
+.guest-wrap .consent-row{display:flex;justify-content:space-between;align-items:center;padding:20px 0;font-size:14px;font-weight:500;margin-bottom:20px}
 .guest-wrap .consent-wrap{display:flex;gap:20px;font-size:14px}
-.guest-wrap .consent-wrap label{display:flex;align-items:center;gap:5px;cursor:pointer}
+.guest-wrap .consent-wrap label{display:flex;align-items:center;gap:5px;cursor:pointer;padding:8px 12px;border-radius:4px;transition:background 0.2s}
+.guest-wrap .consent-wrap label:hover{background:#f5f5f5}
 .guest-wrap .consent-wrap input[type="radio"]{width:18px;height:18px;accent-color:#000;cursor:pointer;margin:0}
 .guest-wrap .submit-area{text-align:center;margin-bottom:60px}
-.guest-wrap .submit-btn{width:240px;height:60px;background:#fff;border:1px solid #000;color:#000;font-size:16px;font-weight:500;cursor:pointer;transition:all 0.3s;-webkit-appearance:none;border-radius:0;font-family:'Noto Sans KR',sans-serif}
-.guest-wrap .submit-btn:hover{background:#000;color:#fff}
+.guest-wrap .success-msg{display:none;text-align:center;padding:80px 20px 100px}
+.guest-wrap .success-msg .success-icon{width:64px;height:64px;border-radius:50%;background:#15233d;display:inline-flex;align-items:center;justify-content:center;margin-bottom:24px}
+.guest-wrap .success-msg .success-icon svg{width:32px;height:32px}
+.guest-wrap .success-msg h3{font-size:22px;font-weight:700;color:#15233d;margin:0 0 12px}
+.guest-wrap .success-msg p{font-size:15px;color:#888;line-height:1.6;margin:0}
+.guest-wrap .submit-btn{width:100%;max-width:400px;height:60px;background:#15233d;border:none;color:#fff;font-size:17px;font-weight:600;cursor:pointer;transition:all 0.3s;-webkit-appearance:none;appearance:none;border-radius:6px;font-family:'Noto Sans KR',sans-serif;letter-spacing:0.03em}
+.guest-wrap .submit-btn:hover{background:#1e3258}
 @media(max-width:768px){
 .guest-wrap{padding:40px 15px 30px}
 .guest-wrap h2{font-size:20px}
@@ -264,14 +270,15 @@ $(function() {
 .guest-wrap .form-label{width:90px;font-size:13px;padding:15px 0}
 .guest-wrap .form-input{padding:15px 0 15px 8px}
 .guest-wrap .form-input input[type="text"],.guest-wrap .form-input input[type="tel"],.guest-wrap .form-input input[type="date"],.guest-wrap .form-input select{font-size:16px}
-.guest-wrap .interest-tags label{font-size:13px;padding:6px 14px}
+.guest-wrap .interest-tags label{font-size:13px;padding:8px 16px}
 .guest-wrap .g-notice{font-size:11px}
 .guest-wrap .g-section{font-size:14px}
 .guest-wrap .privacy-table th{width:100px;font-size:12px;padding:10px 8px}
 .guest-wrap .privacy-table td{font-size:12px;padding:10px 8px}
 .guest-wrap .consent-row{flex-direction:column;gap:10px;align-items:flex-start;font-size:13px}
 .guest-wrap .consent-wrap{font-size:13px}
-.guest-wrap .submit-btn{font-size:14px;height:50px;width:180px}
+.guest-wrap .consent-wrap label{padding:6px 10px}
+.guest-wrap .submit-btn{font-size:15px;height:54px;width:100%}
 }
 </style>
 <div id="scont">
@@ -288,11 +295,11 @@ $(function() {
 
 
 	<div class="form-row">
-		<div class="form-label">이름 <span class="req">*</span></div>
+		<label class="form-label" for="name">이름 <span class="req">*</span></label>
 		<div class="form-input"><input type="text" id="name" maxlength="20" placeholder="이름을 입력해주세요." inputmode="text" lang="ko"></div>
 	</div>
 	<div class="form-row">
-		<div class="form-label">휴대전화 <span class="req">*</span></div>
+		<label class="form-label" for="phone">휴대전화 <span class="req">*</span></label>
 		<div class="form-input"><input type="tel" id="phone" maxlength="13" placeholder="010-0000-0000" inputmode="numeric"></div>
 	</div>
 	<div class="form-row">
@@ -317,7 +324,6 @@ $(function() {
 		<div class="form-input">
 			<div class="resv-trigger" onclick="openModal()">
 				<span class="resv-trigger-text" id="resvDisplay">날짜와 시간을 선택해 주세요</span>
-				<span class="resv-trigger-icon">›</span>
 			</div>
 		</div>
 	</div>
@@ -375,8 +381,14 @@ $(function() {
 	<input type="hidden" id="ip_address" value="">
 	<input type="hidden" id="device" value="">
 
-	<div class="submit-area">
-		<button type="button" class="submit-btn" id="submitBtn" onclick="submitForm()">등록</button>
+	<div class="submit-area" id="submitArea">
+		<button type="button" class="submit-btn" id="submitBtn" onclick="submitForm()">관심고객 등록하기</button>
+	</div>
+
+	<div class="success-msg" id="successMsg">
+		<div class="success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+		<h3>관심고객 등록이 완료되었습니다</h3>
+		<p>입력하신 연락처로 분양정보와<br>견본주택 방문안내를 보내드리겠습니다.<br>감사합니다.</p>
 	</div>
 </div>
 
@@ -452,15 +464,11 @@ function submitForm() {
 	.then(function(r){ return r.json(); })
 	.then(function(result){
 		if(result.success){
-			alert('관심고객 등록이 완료되었습니다.\n감사합니다.');
-			document.getElementById('name').value = '';
-			document.getElementById('phone').value = '';
-			document.getElementById('visitDate').value = '';
-			document.getElementById('visitTime').value = '';
-			document.getElementById('resvDisplay').textContent = '날짜와 시간을 선택해 주세요';
-			document.getElementById('resvDisplay').classList.remove('has-value');
-			document.querySelectorAll('input[name="interest"]').forEach(function(c){ c.checked = false; });
-			document.querySelectorAll('input[name="agree"]').forEach(function(c){ c.checked = false; });
+			var wrap = document.querySelector('.guest-wrap');
+			var formEls = wrap.querySelectorAll('.g-info, .g-section, .form-row, .g-notice, .privacy-table, .consent-row, #submitArea, #reservationModal, input[type="hidden"]');
+			formEls.forEach(function(el){ el.style.display = 'none'; });
+			document.getElementById('successMsg').style.display = 'block';
+			window.scrollTo({top: wrap.offsetTop - 20, behavior: 'smooth'});
 		} else {
 			alert(result.error || '등록에 실패했습니다. 다시 시도해주세요.');
 		}
