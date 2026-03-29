@@ -229,5 +229,24 @@ wcs_add["wa"] = "16069f531c9f3d0";
 if(window.wcs) {
   wcs_do();
 }
-</script></body>
+</script><!-- UTM/IP/Device Tracking -->
+<script>
+(function(){
+  var ss = sessionStorage;
+  var params = new URLSearchParams(window.location.search);
+  ['utm_source','utm_medium','utm_campaign','utm_term','utm_content'].forEach(function(k){
+    var v = params.get(k);
+    if(v) ss.setItem(k, v);
+  });
+  var w = window.innerWidth;
+  ss.setItem('device_type', w <= 768 ? 'Mobile' : w <= 1024 ? 'Tablet' : 'Desktop');
+  if(!ss.getItem('user_ip')){
+    fetch('https://ipinfo.io/json?token=06bc83f7504e84')
+      .then(function(r){return r.json()})
+      .then(function(d){ss.setItem('user_ip', d.ip + ' (' + (d.org||'Unknown') + ')')})
+      .catch(function(){});
+  }
+})();
+</script>
+</body>
 </html>

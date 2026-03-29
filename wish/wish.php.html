@@ -197,302 +197,206 @@ $(function() {
 	$(".tab_f").append(contents);
 });
 </script>	<div id="scont">
-		<!-- <div class="title">관심고객등록</div> -->
-		<!--s관심고객-->
-		<!-- <img src="/img/top_event_5th.jpg?v01" alt=""/> -->
-		<form id="interRegForm" name="interRegForm" method="post" onsubmit="return thisRegFormSubmit(this);">
-		<input type="hidden" name="security_key" id="security_key" value="l71s" />
-		<input type="hidden" name="wr_subject" value="관심고객">
-							<table class="write">
-								<tbody>
-									<!-- <tr>
-										<th>관심시설</th>
-										<td>
-											<label><span class=""><input type="radio" name="ty" id="ty" value="주거시설" checked> 주거시설</span></label>
-								 			<label><span class=""><input type="radio" name="ty" id="ty" value="상업시설"> 상업시설</span></label>
-										</td>
-									</tr> -->
-									<tr>
-										<th>이름</th>
-										<td>
-											<input type="text" class="text03" name="name" id="name" maxlength="20" required>
-										</td>
-									</tr>
-									<tr>
-										<th>휴대전화</th>
-										<td>
-											<input type="text" class="text03" placeholder="숫자만 입력해주세요." name="tel" id="tel" maxlength="14" onblur="$('#tel_chk').val('');" numberOnly required>
-										</td>
-									</tr>
-									<tr class="add">
-										<th>주소</th>
-										<td>
-											<input type="text" class="text04" name="zipcode" id="zipcode" readonly="">
-											<input type="text" class="text01" name="address1" id="address1" readonly="">
-											<input type="text" class="text01" name="address2" id="address2" maxlength="60" placeholder="상세주소 입력">
-											<input type="button" value="주소 검색" class="postsearch color" id="postsearch">
-											<!-- <input type="text" class="text04" name="add" id="add" maxlength="20" placeholder="ex) 00시 00구 00동"> -->
-										</td>
-									</tr>
-									<!-- <tr class="a_age aa">
-										<th>연령대</th>
-										<td>
-											<label><input type="radio" name="age" value="20대" required> 20대</label>
-											<label><input type="radio" name="age" value="30대"> 30대</label>
-											<label><input type="radio" name="age" value="40대"> 40대</label>
-											<label><input type="radio" name="age" value="50대"> 50대</label>
-											<label><input type="radio" name="age" value="60대 이상"> 60대 이상</label>
-										</td>
-									</tr> -->
-									<tr class="a_type aa">
-										<th>관심평형</th>
-										<td>
-											<label><input type="radio" name="extent" value="59㎡" required> 59㎡(민간임대)</label>
-											<label><input type="radio" name="extent" value="75㎡"> 75㎡</label>
-											<label><input type="radio" name="extent" value="84㎡"> 84㎡</label>
-											<label><input type="radio" name="extent" value="112㎡"> 112㎡</label>
-										</td>
-									</tr>
-									<!-- <tr class="a_think aa">
-										<th>일반분양 청약의사</th>
-										<td>
-											<label><input type="radio" name="q_1" value="청약하겠다" required> 청약하겠다</label>
-											<label><input type="radio" name="q_1" value="고민 후 청약하겠다"> 고민 후 청약하겠다</label>
-											<label><input type="radio" name="q_1" value="없다"> 없다</label>
-										</td>
-									</tr>
-									<tr class="a_think02 aa">
-										<th>민간임대 청약의사</th>
-										<td>
-											<label><input type="radio" name="q_2" value="청약하겠다" required> 청약하겠다</label>
-											<label><input type="radio" name="q_2" value="고민 후 청약하겠다"> 고민 후 청약하겠다</label>
-											<label><input type="radio" name="q_2" value="없다"> 없다</label>
-											<div class="atten">※청약통장 미사용으로 일반분양과 중복청약 가능</div>
-										</td>
-									</tr> -->
-								</tbody>
-							</table>
-							<div class="duck_foot">
-							※ 고객님께 분양 정보 제공에 필요한 최소한의 개인정보를 수집하고 있습니다. 이에 개인정보의 수집 및 이용에 관하여 아래와 같이 안내하오니 충분히 읽어보신 후 동의하여 주시기 바랍니다. ※ 고객님의 개인정보는 개인정보보호법 및 정보통신망법에 따라 안전하게 보관되며 분양 완료 후 자동 파기됩니다. ※ 고객님의 소중한 정보는 분양 이외의 목적으로 사용되지 않습니다. ※ 개인정보 제공에 대한 동의를 거부할 권리가 있습니다. 그러나 동의를 거부할 경우 원활한 서비스 제공에 일부 제한을 받을 수 있습니다. 단, 동의를 거부할 경우 모집에 관련된 정보제공에 제한을 받을 수 있으며, 각종 이벤트 행사에 참여가 어려우니 참고해 주시기 바랍니다.
-							</div>
+	<!-- 허니팟 (봇방지) -->
+	<input type="text" name="hp_check" id="hp_check" style="display:none" value="" autocomplete="off">
 
-<!-- -->
-<div class="allCheck_wrap">
-	<label for="agree_all">
-      <input type="checkbox" name="agree_all" id="agree_all" value="Y" />
-      전체 동의
-    </label>
-</div>
+	<h3 style="text-align:center; font-size:1.6vw; margin-bottom:1vw; font-weight:500;">관심고객등록</h3>
+	<div style="width:1px; height:3vw; background:#15233d; margin:0 auto 2vw;"></div>
 
-<!-- -->
-<dl>
-	<dt>· 개인정보 수집 및 이용동의
-		<!-- <div>당사는 개인정보보호법, 정보통신망이용촉진및정보보호등에관한법률 등 관련 법규상의 개인정보보호규정을 준수하고 있으며, 최적의 서비스 제공을 위하여 필요한 최소 범위 내에서 아래와 같이 개인정보를 수집하고 있습니다.</div> -->
-	</dt>
-	<dd>
-		<table>
-        <tbody>
-		<tr>
-        <th>개인정보의 수집주체</th>
-		<td>㈜프런티어마루</td>
-		</tr>
-		<tr>
-        <th>개인정보의 수집 / 이용항목</th>
-		<td>성명, 연락처, 주소, 설문내용</td>
-		</tr>
-		<tr>
-        <th>개인정보의 수집 / 이용목적</th>
-		<td>신분평 더웨이시티 제일풍경채 1BL 분양정보에 대한 안내(전화, 문자, 우편)</td>
-		</tr>
-		<tr>
-		<th>개인정보의 보유 및 이용기간</th>
-		<td>신분평 더웨이시티 제일풍경채 1BL 분양완료시까지</td>
-		</tr>
-		<tr>
-		<th>개인정보 동의를 거부할 권리</th>
-		<td>귀하께서는 개인정보 수집·이용을 거절하실 수 있으며 거절하실 경우 관심고객 등록이 불가합니다.</td>
-        </tr>
-		</tbody></table>
-	</dd>
-	<dd>
-		<div class="agree">
-			<span class="mm">[필수] 개인정보 수집 및 이용에 동의하십니까?</span>
-			<label><input type="radio" name="agree" id="agree" value="동의" required> 예</label>
-			<label><input type="radio" name="agree" id="agree" value=""> 아니요</label>
-		</div>
-	</dd>
-</dl>
-
-<dl class="sec">
-	<dt>· 마케팅 활용동의
-	</dt>
-	<dd>
-		<table>
-        <tbody>
-		<tr>
-        <th>마케팅 활용의 수집주체</th>
-		<td>㈜프런티어마루</td>
-		</tr>
-		<tr>
-        <th>마케팅 활용의 수집/이용항목</th>
-		<td>성명, 연락처, 주소, 설문내용</td>
-		</tr>
-		<tr>
-        <th>마케팅 활용의 수집/이용목적</th>
-		<td>신분평 더웨이시티 제일풍경채 1BL 분양정보에 대한 안내(전화, 문자, 우편)</td>
-		</tr>
-		<tr>
-		<th>마케팅 활용의 보유 및 이용기간</th>
-		<td>신분평 더웨이시티 제일풍경채 1BL 분양완료시까지</td>
-		</tr>
-		<tr>
-		<th>마케팅 활용 동의를 거부할 권리</th>
-		<td>귀하께서는 마케팅 활용을 위한 개인정보 수집·이용을 거절하실 수 있으며 거절하실 경우 정보제공에 제한이 있을 수 있습니다.</td>
-        </tr>
-		</tbody></table>
-	</dd>
-	<dd>
-		<div class="agree02">
-			<span class="mm">[선택] 마케팅 활용에 동의하십니까?</span>
-			<label><input type="radio" name="agree02" id="agree02" value="동의" required> 예</label>
-			<label><input type="radio" name="agree02" id="agree02" value=""> 아니요</label>
-		</div>
-	</dd>
-</dl>
-
-<!-- -->
-
-		<div class="bbs_btn">
-			<input type="submit" value="등록" class="color">
-			<input type="button" value="취소">
-			<!--  -->
-					</div>
-		</form>
-		<script type="text/javascript" src="http://dmaps.daum.net/map_js_init/postcode.v2.js"></script>
-		<script>
-            // 약관전체동의
-            $(document).ready(function() {
-              $("#agree_all").click(function() {
-                var agree_all = $("#agree_all").is(":checked");
-                if(agree_all == true) {
-                  $("#agree").prop("checked", true);
-                  $("#agree02").prop("checked", true);
-                } else {
-                  $("#agree").prop("checked", false);
-                  $("#agree02").prop("checked", false);
-                }
-              });
-            });
-
-            function thisRegFormSubmit(form) {
-
-			if(form.name.value == "") {
-				alert("성명을 입력바랍니다.");
-				form.name.focus();
-				return false;
-			}
-
-			if(!form.tel.value) {
-				alert("연락처가 입력되지 않았습니다");
-				form.tel.focus();
-				return false;
-			}
-
-			if(!form.address1.value) {
-				alert("주소가 누락되었습니다.");
-				$("#address1").focus();
-				return false;
-			}
-
-			if(!form.address2.value) {
-				alert("주소가 누락되었습니다.");
-				form.address2.focus();
-				return false;
-			}
-
-            /*
-			if(!form.email1.value) {
-				alert("이메일 주소가 누락되었습니다.");
-				form.email1.focus();
-				return false;
-			}
-			if(!form.email2.value) {
-				alert("이메일 주소가 누락되었습니다.");
-				form.email2.focus();
-				return false;
-			}
-
-			if(!form.isSms.checked) {
-				alert("SMS수신에 동의하지 않으셨습니다.");
-				$("#isSms").focus();
-				return false;
-			}
-
-			if(!form.isMail.checked) {
-				alert("메일수신에 동의하지 않으셨습니다.");
-				$("#isMail").focus();
-				return false;
-			}*/
-
-			if(!form.agree[0].checked) {
-				alert("개인정보 취급방침에 동의하지 않으셨습니다.");
-				$("#agree").focus();
-				return false;
-			}
-
-			$.ajax({
-				type : "POST",
-				url : "/wish/ajax.insept.php",
-				data : $("#interRegForm").serialize(),
-				success:function(result) {
-					$("#isExist").val(result);
-					//alert(result);
-			        if(result == "duplication") {
-						alert("관심고객등록은 중복으로 신청할 수 없습니다.");
-                    } else {
-                        alert("관심고객 등록 되었습니다.");
-                        location.reload();
-                    }
-				}
-			});
-			return false;
-		}
-			$("#zipcode, #postsearch, #address1").bind("click", function() {
-				openDaumPostcode()
-			});
-			function openDaumPostcode() {
-			new daum.Postcode({
-				oncomplete: function(data) {
-					// 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
-					// 우편번호와 주소 정보를 해당 필드에 넣고, 커서를 상세주소 필드로 이동한다.
-					//document.getElementById('addr1').value = data.zonecode;
-					//document.getElementById('post2').value = data.zonecode;
-					//	document.getElementById('addr1').value = data.address;
-
-					//전체 주소에서 연결 번지 및 ()로 묶여 있는 부가정보를 제거하고자 할 경우,
-					//아래와 같은 정규식을 사용해도 된다. 정규식은 개발자의 목적에 맞게 수정해서 사용 가능하다.
-					var address = data.address.replace(/(\s|^)\(.+\)$|\S+~\S+/g, '');
-					document.getElementById('zipcode').value = data.zonecode;
-					document.getElementById('address1').value = address;
-					document.getElementById('address2').focus();
-				}
-			}).open();
-		}
-			$("#email_select").bind("change", function() {
-			var data = document.getElementById("email_select").value;
-			$("#email2").val(data);
-		});
-		/*팝업창
-		$(function(){
-			$("#pop").click(function(){
-				var new_win = window.open("/ver01/bbs/board.php?bo_table=interest","insept","left=100,top=100,width=900,height=600,scrollbars=1");
-				new_win.focus();
-				return false;
-			});
-		});*/
-		</script>
-		<!--e관심고객-->
+	<div style="background:#f8f5f0; padding:2vw 3vw; text-align:center; margin-bottom:3vw; line-height:180%; font-size:0.9vw; color:#333;">
+		관심고객으로 등록하시면 <strong>신분평 더웨이시티 제일풍경채</strong>의<br>
+		<strong>분양정보와 견본주택 방문안내</strong>를 빠르고 정확하게 받아보실 수 있습니다
 	</div>
+
+	<!-- 기본정보 입력 -->
+	<div style="font-size:1vw; font-weight:600; margin-bottom:0.5vw;">· 기본정보 입력 <span style="color:#FF0408;">(필수)</span></div>
+	<div style="border-top:2px solid #d4a187; margin-bottom:2vw;"></div>
+
+	<table class="write">
+		<tbody>
+			<tr>
+				<th>이름 <span style="color:#FF4040;">*</span></th>
+				<td><input type="text" class="text03" name="name" id="name" maxlength="20" placeholder="이름을 입력해주세요." required></td>
+			</tr>
+			<tr>
+				<th>휴대전화 <span style="color:#FF4040;">*</span></th>
+				<td><input type="tel" class="text03" name="phone" id="phone" maxlength="13" placeholder="숫자만 입력해주세요." required></td>
+			</tr>
+			<tr class="a_type aa">
+				<th>관심평형</th>
+				<td>
+					<label><input type="checkbox" name="interest" value="59㎡(민간임대)"> 59㎡(민간임대)</label>
+					<label><input type="checkbox" name="interest" value="75㎡"> 75㎡</label>
+					<label><input type="checkbox" name="interest" value="84㎡"> 84㎡</label>
+					<label><input type="checkbox" name="interest" value="112㎡"> 112㎡</label>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<!-- 견본주택 방문예약 -->
+	<div style="font-size:1vw; font-weight:600; margin:3vw 0 0.5vw;">· 견본주택 방문예약 (선택사항)</div>
+	<div style="border-top:2px solid #d4a187; margin-bottom:2vw;"></div>
+
+	<table class="write">
+		<tbody>
+			<tr>
+				<th>방문날짜</th>
+				<td><input type="date" class="text03" name="visitDate" id="visitDate"></td>
+			</tr>
+			<tr>
+				<th>방문시간</th>
+				<td>
+					<select name="visitTime" id="visitTime" class="text03" style="width:100%; height:3vw; border:1px solid #ddd; padding:0 1vw;">
+						<option value="">시간을 선택하세요.</option>
+						<option value="오전 10:00">오전 10:00</option>
+						<option value="오전 10:30">오전 10:30</option>
+						<option value="오전 11:00">오전 11:00</option>
+						<option value="오전 11:30">오전 11:30</option>
+						<option value="오후 12:00">오후 12:00</option>
+						<option value="오후 12:30">오후 12:30</option>
+						<option value="오후 1:00">오후 1:00</option>
+						<option value="오후 1:30">오후 1:30</option>
+						<option value="오후 2:00">오후 2:00</option>
+						<option value="오후 2:30">오후 2:30</option>
+						<option value="오후 3:00">오후 3:00</option>
+						<option value="오후 3:30">오후 3:30</option>
+						<option value="오후 4:00">오후 4:00</option>
+						<option value="오후 4:30">오후 4:30</option>
+						<option value="오후 5:00">오후 5:00</option>
+						<option value="오후 5:30">오후 5:30</option>
+						<option value="오후 6:00">오후 6:00</option>
+					</select>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<div class="duck_foot" style="margin:2vw 0; font-size:0.75vw; color:#777; line-height:170%;">
+		※ 고객님의 소중한 정보는 분양 이외의 목적으로 사용되지 않습니다.<br>
+		※ 고객님의 개인정보는 개인정보보호법 및 정보통신망법에 따라 안전하게 보관되며 분양 완료 후 자동 파기됩니다.
+	</div>
+
+	<!-- 개인정보 수집 및 이용동의 -->
+	<div style="font-size:1vw; font-weight:600; margin:2vw 0 0.5vw;">· 개인정보 수집 및 이용동의</div>
+	<div style="border-top:2px solid #d4a187; margin-bottom:2vw;"></div>
+
+	<dl>
+		<dd>
+			<table>
+				<tbody>
+					<tr><th>개인정보의 수집 / 이용항목</th><td>성명, 연락처, 설문내용</td></tr>
+					<tr><th>개인정보의 수집 / 이용목적</th><td>신분평 더웨이시티 제일풍경채 1BL 분양정보에 대한 안내(전화, 문자)</td></tr>
+					<tr><th>개인정보의 보유 및 이용기간</th><td>신분평 더웨이시티 제일풍경채 1BL 분양완료시까지</td></tr>
+					<tr><th>개인정보 동의를 거부할 권리</th><td>귀하께서는 개인정보 수집·이용을 거절하실 수 있으며 거절하실 경우 관심고객 등록이 불가합니다.</td></tr>
+				</tbody>
+			</table>
+		</dd>
+		<dd>
+			<div class="agree">
+				<span class="mm">[필수] 개인정보 수집 및 이용에 동의하십니까? <span style="color:#FF4040;">*</span></span>
+				<label><input type="radio" name="agree" value="동의" required> 동의</label>
+				<label><input type="radio" name="agree" value="거부"> 거부</label>
+			</div>
+		</dd>
+	</dl>
+
+	<!-- 히든 필드 (UTM, IP, 디바이스) -->
+	<input type="hidden" name="utm_source" id="utm_source" value="">
+	<input type="hidden" name="utm_medium" id="utm_medium" value="">
+	<input type="hidden" name="utm_campaign" id="utm_campaign" value="">
+	<input type="hidden" name="utm_term" id="utm_term" value="">
+	<input type="hidden" name="utm_content" id="utm_content" value="">
+	<input type="hidden" name="ip_address" id="ip_address" value="">
+	<input type="hidden" name="device" id="device" value="">
+
+	<div class="bbs_btn">
+		<input type="button" value="등록" class="color" id="submitBtn" onclick="submitForm()">
+	</div>
+
+	<script>
+	// UTM, IP, 디바이스 정보 가져오기
+	(function(){
+		var ss = sessionStorage;
+		document.getElementById('utm_source').value = ss.getItem('utm_source') || '';
+		document.getElementById('utm_medium').value = ss.getItem('utm_medium') || '';
+		document.getElementById('utm_campaign').value = ss.getItem('utm_campaign') || '';
+		document.getElementById('utm_term').value = ss.getItem('utm_term') || '';
+		document.getElementById('utm_content').value = ss.getItem('utm_content') || '';
+		document.getElementById('ip_address').value = ss.getItem('user_ip') || '';
+		document.getElementById('device').value = ss.getItem('device_type') || '';
+	})();
+
+	// 전화번호 자동 포맷
+	document.getElementById('phone').addEventListener('input', function(e) {
+		var v = e.target.value.replace(/[^0-9]/g, '');
+		if (v.length > 3 && v.length <= 7) v = v.slice(0,3) + '-' + v.slice(3);
+		else if (v.length > 7) v = v.slice(0,3) + '-' + v.slice(3,7) + '-' + v.slice(7,11);
+		e.target.value = v;
+	});
+
+	function submitForm() {
+		var name = document.getElementById('name').value.trim();
+		var phone = document.getElementById('phone').value.trim();
+		var agreeRadios = document.getElementsByName('agree');
+		var agreed = false;
+		for (var i = 0; i < agreeRadios.length; i++) {
+			if (agreeRadios[i].checked && agreeRadios[i].value === '동의') agreed = true;
+		}
+
+		if (!name || name.length < 2) { alert('이름을 2자 이상 입력해주세요.'); return; }
+		if (!phone || phone.replace(/[^0-9]/g,'').length < 10) { alert('연락처를 정확히 입력해주세요.'); return; }
+		if (!agreed) { alert('개인정보 수집 및 이용에 동의해주세요.'); return; }
+
+		var interestChecks = document.querySelectorAll('input[name="interest"]:checked');
+		var interest = [];
+		interestChecks.forEach(function(c) { interest.push(c.value); });
+
+		var data = {
+			name: name,
+			phone: phone,
+			interest: interest,
+			visitDate: document.getElementById('visitDate').value || '',
+			visitTime: document.getElementById('visitTime').value || '',
+			agree: '동의',
+			hp_check: document.getElementById('hp_check').value,
+			utm_source: document.getElementById('utm_source').value,
+			utm_medium: document.getElementById('utm_medium').value,
+			utm_campaign: document.getElementById('utm_campaign').value,
+			utm_term: document.getElementById('utm_term').value,
+			utm_content: document.getElementById('utm_content').value,
+			ip_address: document.getElementById('ip_address').value,
+			device: document.getElementById('device').value
+		};
+
+		var btn = document.getElementById('submitBtn');
+		btn.disabled = true;
+		btn.value = '등록 중...';
+
+		fetch('/api/register', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data)
+		})
+		.then(function(r) { return r.json(); })
+		.then(function(result) {
+			if (result.success) {
+				alert('관심고객 등록이 완료되었습니다.\n감사합니다.');
+				location.reload();
+			} else {
+				alert(result.error || '등록에 실패했습니다. 다시 시도해주세요.');
+				btn.disabled = false;
+				btn.value = '등록';
+			}
+		})
+		.catch(function() {
+			alert('서버 오류가 발생했습니다. 다시 시도해주세요.');
+			btn.disabled = false;
+			btn.value = '등록';
+		});
+	}
+	</script>
+</div>
 
 <div id="footer">
 	<div class="wrap">
@@ -515,6 +419,25 @@ wcs_add["wa"] = "16069f531c9f3d0";
 if(window.wcs) {
   wcs_do();
 }
+</script>
+<!-- UTM/IP/Device Tracking -->
+<script>
+(function(){
+  var ss = sessionStorage;
+  var params = new URLSearchParams(window.location.search);
+  ['utm_source','utm_medium','utm_campaign','utm_term','utm_content'].forEach(function(k){
+    var v = params.get(k);
+    if(v) ss.setItem(k, v);
+  });
+  var w = window.innerWidth;
+  ss.setItem('device_type', w <= 768 ? 'Mobile' : w <= 1024 ? 'Tablet' : 'Desktop');
+  if(!ss.getItem('user_ip')){
+    fetch('https://ipinfo.io/json?token=06bc83f7504e84')
+      .then(function(r){return r.json()})
+      .then(function(d){ss.setItem('user_ip', d.ip + ' (' + (d.org||'Unknown') + ')')})
+      .catch(function(){});
+  }
+})();
 </script>
 </body>
 </html>
