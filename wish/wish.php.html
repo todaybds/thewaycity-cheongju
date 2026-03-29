@@ -48,6 +48,10 @@
 <script async type="text/javascript" src="//script.boraware.kr/protect_script_v2.js"></script>
 <!-- Antifraud -->
 <script src="/antifraud.js"></script>
+<!-- Flatpickr (날짜 선택) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
 </head>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@1.0/nanumsquare.css">
 <link rel="preconnect" href="https://fonts.gstatic.com">
@@ -211,13 +215,32 @@ $(function() {
 .guest-wrap .form-input input[type="text"],.guest-wrap .form-input input[type="tel"],.guest-wrap .form-input input[type="date"],.guest-wrap .form-input select{border:none;background:transparent;font-size:16px;color:#333;width:100%;max-width:350px;height:30px;padding:0;-webkit-appearance:none;appearance:none;border-radius:0;font-family:'Noto Sans KR',sans-serif}
 .guest-wrap .form-input input:focus,.guest-wrap .form-input select:focus{outline:none}
 .guest-wrap .form-input input::placeholder{color:#aaa}
-.guest-wrap .form-input select{color:#aaa}
-.guest-wrap .form-input select.selected{color:#333}
 .guest-wrap .form-input select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right center;background-size:18px;padding-right:25px;cursor:pointer}
-.guest-wrap .form-input input[type="date"]{cursor:pointer;max-width:200px;position:relative}
-.guest-wrap .form-input input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
-.guest-wrap .form-input input[type="date"].empty::-webkit-datetime-edit{color:transparent}
-.guest-wrap .form-input input[type="date"].empty::before{content:attr(data-placeholder);position:absolute;left:0;top:50%;transform:translateY(-50%);color:#aaa;font-size:16px;pointer-events:none}
+.resv-trigger{display:flex;align-items:center;justify-content:space-between;cursor:pointer;width:100%;max-width:350px}
+.resv-trigger-text{font-size:15px;color:#aaa}
+.resv-trigger-text.has-value{color:#333;font-weight:500}
+.resv-trigger-icon{font-size:20px;color:#999}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:99999;overflow-y:auto;justify-content:center;align-items:center;padding:20px;box-sizing:border-box}
+.modal-content-box{background:#fff;width:100%;max-width:380px;border-radius:16px;overflow:hidden;box-shadow:0 10px 60px rgba(0,0,0,0.2);display:flex;flex-direction:column;max-height:90vh;margin:auto}
+.modal-header{height:52px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:#fff;flex-shrink:0}
+.modal-title{font-size:16px;font-weight:600;color:#111;font-family:'Noto Sans KR',sans-serif}
+.modal-close-btn{font-size:20px;color:#333;cursor:pointer;background:none;border:none;font-weight:300;padding:0}
+.modal-body{padding:0;display:flex;flex-direction:column;overflow-y:auto}
+.calendar-area{padding:16px 0 8px;display:flex;justify-content:center}
+.flatpickr-calendar{box-shadow:none!important;background:transparent!important}
+.flatpickr-day.selected,.flatpickr-day.startRange,.flatpickr-day.endRange{background:#d4a187!important;border-color:#d4a187!important}
+.flatpickr-day.today:not(.selected){border-color:#d0cbc4!important}
+.time-area{padding:0 20px 20px}
+.time-date-label{display:block;font-size:14px;font-weight:600;color:#111;padding:12px 0 4px;border-top:1px solid #f0f0f0;font-family:'Noto Sans KR',sans-serif}
+.time-slot-section{margin-top:12px}
+.time-slot-title{font-size:13px;font-weight:600;color:#555;margin-bottom:8px;font-family:'Noto Sans KR',sans-serif}
+.time-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%}
+.time-btn{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:9px 0;font-size:13px;color:#333;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans KR',sans-serif;text-align:center}
+.time-btn:hover{border-color:#d4a187;color:#d4a187}
+.time-btn.active{background:#d4a187;color:#fff;border-color:#d4a187;font-weight:600}
+.msg-box{text-align:center;color:#999;padding:40px 0}
+.msg-text{font-size:14px;color:#999}
+@media(max-width:768px){.modal-overlay{padding:0;align-items:flex-end}.modal-content-box{border-radius:16px 16px 0 0;max-height:85vh;max-width:100%}}
 .guest-wrap .interest-tags{display:flex;gap:8px;flex-wrap:wrap}
 .guest-wrap .interest-tags label{display:inline-flex;align-items:center;padding:10px 20px;border:1px solid #ddd;border-radius:30px;font-size:15px;cursor:pointer;transition:all 0.2s;user-select:none}
 .guest-wrap .interest-tags label:has(input:checked){border-color:#15233d;background:#15233d;color:#fff}
@@ -286,27 +309,37 @@ $(function() {
 
 	<!-- 견본주택 방문예약 -->
 	<div class="g-section" style="margin-top:40px;"><span>· 견본주택 방문예약 (선택사항)</span></div>
-
+	<input type="hidden" id="visitDate" value="">
+	<input type="hidden" id="visitTime" value="">
 
 	<div class="form-row">
-		<div class="form-label">방문날짜</div>
-		<div class="form-input"><input type="date" id="visitDate" data-placeholder="날짜를 선택하세요."></div>
-	</div>
-	<div class="form-row">
-		<div class="form-label">방문시간</div>
+		<div class="form-label">방문예약</div>
 		<div class="form-input">
-			<select id="visitTime">
-				<option value="">시간을 선택하세요.</option>
-				<option value="오전 10:00">오전 10:00</option><option value="오전 10:30">오전 10:30</option>
-				<option value="오전 11:00">오전 11:00</option><option value="오전 11:30">오전 11:30</option>
-				<option value="오후 12:00">오후 12:00</option><option value="오후 12:30">오후 12:30</option>
-				<option value="오후 1:00">오후 1:00</option><option value="오후 1:30">오후 1:30</option>
-				<option value="오후 2:00">오후 2:00</option><option value="오후 2:30">오후 2:30</option>
-				<option value="오후 3:00">오후 3:00</option><option value="오후 3:30">오후 3:30</option>
-				<option value="오후 4:00">오후 4:00</option><option value="오후 4:30">오후 4:30</option>
-				<option value="오후 5:00">오후 5:00</option><option value="오후 5:30">오후 5:30</option>
-				<option value="오후 6:00">오후 6:00</option>
-			</select>
+			<div class="resv-trigger" onclick="openModal()">
+				<span class="resv-trigger-text" id="resvDisplay">날짜와 시간을 선택해 주세요</span>
+				<span class="resv-trigger-icon">›</span>
+			</div>
+		</div>
+	</div>
+
+	<!-- 날짜+시간 통합 모달 -->
+	<div id="reservationModal" class="modal-overlay">
+		<div class="modal-content-box">
+			<div class="modal-header">
+				<span class="modal-title">날짜와 시간을 선택해 주세요</span>
+				<button type="button" class="modal-close-btn" onclick="closeModal()">✕</button>
+			</div>
+			<div class="modal-body">
+				<div class="calendar-area"><div id="inline_calendar"></div></div>
+				<div class="time-area" id="time_msg_default">
+					<div class="msg-box"><div class="msg-text">날짜를 먼저 선택해주세요.</div></div>
+				</div>
+				<div class="time-area" id="time_select_box" style="display:none;">
+					<span class="time-date-label" id="dateDisplay"></span>
+					<div class="time-slot-section"><div class="time-slot-title">오전</div><div class="time-grid" id="timeGridAM"></div></div>
+					<div class="time-slot-section"><div class="time-slot-title">오후</div><div class="time-grid" id="timeGridPM"></div></div>
+				</div>
+			</div>
 		</div>
 	</div>
 
@@ -358,16 +391,6 @@ $(function() {
 	document.getElementById('device').value = ss.getItem('device_type') || '';
 })();
 
-// 날짜 placeholder 처리
-var dateInput = document.getElementById('visitDate');
-dateInput.classList.add('empty');
-dateInput.addEventListener('change', function(){ this.classList.toggle('empty', !this.value); });
-
-// 시간 select 색상 변경
-document.getElementById('visitTime').addEventListener('change', function(e) {
-	e.target.classList.toggle('selected', e.target.value !== '');
-});
-
 document.getElementById('phone').addEventListener('input', function(e) {
 	var v = e.target.value.replace(/[^0-9]/g, '');
 	if(v.length >= 3 && v.substring(0,3) !== '010') v = v.substring(0,2);
@@ -393,6 +416,11 @@ function submitForm() {
 
 	var interest = [];
 	document.querySelectorAll('input[name="interest"]:checked').forEach(function(c){ interest.push(c.value); });
+
+	// 날짜 선택했는데 시간 안 고른 경우
+	var vDate = document.getElementById('visitDate').value;
+	var vTime = document.getElementById('visitTime').value;
+	if(vDate && !vTime){ if(!confirm('방문 시간을 선택하지 않으셨습니다. 예약 없이 등록하시겠습니까?')){ openModal(); return; } vDate=''; }
 
 	fetch('/api/register', {
 		method: 'POST',
@@ -431,6 +459,40 @@ function submitForm() {
 		isSubmitting = false;
 	});
 }
+
+// 모달 열기/닫기
+function openModal(){ $("#reservationModal").css("display","flex").hide().fadeIn(200); if(window.fpInstance) window.fpInstance.redraw(); }
+function closeModal(){ $("#reservationModal").fadeOut(200); }
+
+// 시간 버튼 생성
+$(document).ready(function(){
+	function fmtTime(h,m){ var dh=h>12?h-12:h; var ms=m===0?'00':'30'; var v=(h<10?'0':'')+h+':'+ms; var l=dh+':'+ms; return{val:v,label:l,isAM:h<12}; }
+	var $am=$("#timeGridAM"), $pm=$("#timeGridPM");
+	for(var h=10;h<=18;h++){ [0,30].forEach(function(m){ if(h===18&&m===30)return; var t=fmtTime(h,m); var btn='<button type="button" class="time-btn" data-value="'+t.val+'" data-label="'+(h>=12?'오후':'오전')+' '+t.label+'">'+t.label+'</button>'; if(h<12)$am.append(btn); else $pm.append(btn); }); }
+
+	var today=new Date(), maxD=new Date(); maxD.setMonth(today.getMonth()+1);
+	window.fpInstance = flatpickr("#inline_calendar",{
+		inline:true, locale:"ko", minDate:"today", maxDate:maxD, dateFormat:"Y-m-d", disableMobile:true,
+		onChange:function(sel,dateStr){
+			$("#visitDate").val(dateStr);
+			$("#time_msg_default").hide(); $("#time_select_box").fadeIn();
+			var days=['일','월','화','수','목','금','토'];
+			$("#dateDisplay").html("<span style='color:#d4a187'>"+dateStr+" ("+days[sel[0].getDay()]+")</span>");
+			$(".time-btn").removeClass("active"); $("#visitTime").val("");
+		}
+	});
+
+	$(document).on("click",".time-btn",function(){
+		$(".time-btn").removeClass("active"); $(this).addClass("active");
+		var sDate=$("#visitDate").val(), sLabel=$(this).data("label"), sVal=$(this).data("value");
+		var days=['일','월','화','수','목','금','토'], d=new Date(sDate);
+		$("#visitTime").val(sVal);
+		var $disp=$("#resvDisplay");
+		$disp.text(sDate+" ("+days[d.getDay()]+") "+$(this).data("label"));
+		$disp.addClass("has-value");
+		setTimeout(function(){ closeModal(); },150);
+	});
+});
 </script>
 </div>
 
