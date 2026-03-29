@@ -621,7 +621,7 @@ $(window).on('load', function() {
 $(function() {
 	setTimeout(function(){$(".mcont01").addClass('on');},0);
 	//setTimeout(function(){$(".mcont01").addClass('on02');},3000);
-	setTimeout(function(){$(".popup").addClass('on');},4000);
+	// 팝업 타이머 제거 (새 팝업 시스템 사용)
 	setTimeout(function(){$('.r_menu').addClass('on');},4500);
 	setTimeout(function() { $('.arrow_scroll').addClass('on'); }, 4000);
 	//
@@ -744,94 +744,80 @@ $(function() {
 });
 </script>
 <!--s레이어팝업-->
-<script language="Javascript">
-//팝업
-$(document).ready(function() {
+<style>
+#k_popup_pc{position:fixed;left:0;top:0;width:100%;height:100%;z-index:9999999;display:none}
+#k_popup_pc.show{display:block;animation:popAnim 1s both}
+#k_popup_mo{position:fixed;left:0;top:0;width:100%;height:100%;z-index:9999999;display:none}
+#k_popup_mo.show{display:block;animation:popAnim 1.5s 1.5s both}
+@keyframes popAnim{from{top:-100%}to{}}
+.popup_overlay{width:100%;height:100%;display:flex;justify-content:center;align-items:center;color:#fff}
+.popup_bg{position:absolute;width:100%;height:100%;background:#000;opacity:0.7;left:0;top:0;cursor:pointer}
+.popup_body{z-index:99999999;max-width:800px;width:90%;position:relative;text-align:center}
+.popup_close_x{color:#fff;text-align:center;font-size:16px;margin-bottom:15px;display:block;text-shadow:0 0 5px rgba(0,0,0,1);text-decoration:none;cursor:pointer}
+.popup_body ul.pc_list{display:flex;list-style:none;padding:0;margin:0;gap:10px}
+.popup_body ul.pc_list li{width:100%}
+.popup_body ul.pc_list li img{width:100%;display:block;cursor:pointer}
+.popup_body .mo_swiper{display:none}
+.pop_nav{width:90px;height:32px;position:relative;margin-top:12px;float:right;background:#fff;border-radius:50px;display:flex;justify-content:center;align-items:center;padding:0 2px}
+.pop_nav .swiper-pagination-fraction{width:50px;text-align:center;color:#000;font-size:13px;font-weight:500}
+.pop_nav .swiper-button-prev-pop,.pop_nav .swiper-button-next-pop{width:25px;height:100%;position:relative;cursor:pointer}
+.pop_nav .swiper-button-prev-pop>div{width:6px;height:6px;border-left:1px solid #000;border-bottom:1px solid #000;transform:rotate(45deg);position:absolute;left:8px;top:0;bottom:0;margin:auto}
+.pop_nav .swiper-button-next-pop>div{width:6px;height:6px;border-right:1px solid #000;border-bottom:1px solid #000;transform:rotate(-45deg);position:absolute;right:8px;top:0;bottom:0;margin:auto}
+@media(max-width:767px){.popup_body ul.pc_list{display:none}.popup_body .mo_swiper{display:block}.popup_body{max-width:360px;width:80%}}
+@media(max-width:999px){#k_popup_pc{display:none!important}}
+@media(min-width:1000px){#k_popup_mo{display:none!important}.popup_body .mo_swiper{display:none}}
+</style>
 
-	$(".video-container .btn_close").click(function () {
-		$(".video-container").addClass('off');
-	});
-	$(".popup .btn_pop_close").click(function () {
-		$(".popup").toggleClass('off');
-	});
-	// 모든 닫기 버튼에 이벤트 리스너를 추가
-    document.querySelectorAll('.btn_close').forEach(function(btnClose) {
-        btnClose.addEventListener('click', function() {
-            // 닫기 버튼의 부모 요소 <li>를 숨김 처리
-            btnClose.closest('.pop').style.display = 'none';
-
-            // 남은 팝업 수를 확인
-            const remainingPopups = document.querySelectorAll('.pop').length;
-            const hiddenPopups = document.querySelectorAll('.pop[style*="display: none"]').length;
-
-            // 남은 팝업이 모두 닫혔을 때 .popall에서 on 클래스를 제거
-            if (remainingPopups === hiddenPopups) {
-                document.querySelector('.popup').classList.remove('on');
-            }
-        });
-    });
-});
-
-</script>
-
-<div id="divpop01" class="popup">
-	<form name="notice_form01">
-	<ul>
-		<li class="pop n03">
-			<a href="https://www.cbe.go.kr/news/na/ntt/selectNttInfo.do?mi=10301&nttSn=1558531
-" target="_blank"><img src="ver01/img/pop_1030_02.jpg" border="0" class="pop_img"/></a>
-			<img src="ver01/img/btn_close.png" border="0" class="btn_close" alt=""/>
-		</li>
-		<li class="pop n04">
-			<img src="/ver01/img/pop_alert.jpg" border="0" class="pop_img"/>
-			<img src="ver01/img/btn_close.png" border="0" class="btn_close" alt=""/>
-		</li>
-		<li class="pop n01">
-			<img src="/ver01/img/pop_031601.jpg" border="0" class="pop_img" usemap="#imgmap202634134426"/>
-			<img src="ver01/img/btn_close.png" border="0" class="btn_close" alt=""/>
-			<map id="imgmap202634134426" name="imgmap202634134426">
-				<area shape="rect" alt="" title="" coords="3,613,248,695" href="ver01/img/pop_031601.pdf" target="_blank" />
-				<area shape="rect" alt="" title="" coords="252,612,498,698" href="/wish/reser.php?yy=2026&mm=4#calendar_wp_bk" class="" target="" />
-			</map>
-		</li>
-		<li class="pop n02">
-			<img src="/ver01/img/pop_031602.jpg" border="0" class="pop_img" usemap="#imgmap202634134426_01"/>
-			<img src="ver01/img/btn_close.png" border="0" class="btn_close" alt=""/>
-			<map id="imgmap202634134426_01" name="imgmap202634134426_01">
-				<area shape="rect" alt="" title="" coords="3,613,248,695" href="ver01/img/pop_031602.pdf" target="_blank" />
-				<area shape="rect" alt="" title="" coords="252,612,498,698" href="##" class="soon" target="" />
-			</map>
-		</li>
-		<li class="btn_pop_close">
-			P<br/>O<br/>P<br/>U<br/>P<br/>
-			<img src="ver01/img/arrow_r.png"/>
-		</li>
-	</ul>
-	</form>
+<!-- PC 팝업 -->
+<div id="k_popup_pc" class="show">
+	<div class="popup_overlay">
+		<div class="popup_body">
+			<a href="javascript:closePopPC();" class="popup_close_x">팝업닫기 X</a>
+			<ul class="pc_list">
+				<li><a href="/guest"><img src="ver01/img/pop_0902_01.png" alt="관심고객등록"></a></li>
+				<li><a href="https://www.cbe.go.kr/news/na/ntt/selectNttInfo.do?mi=10301&nttSn=1558531" target="_blank"><img src="ver01/img/pop_1030_02.jpg" alt=""></a></li>
+			</ul>
+		</div>
+		<a href="javascript:closePopPC();" class="popup_bg"></a>
+	</div>
 </div>
 
-<script language="JavaScript">
-cookiedata = document.cookie;
-if ( cookiedata.indexOf("maindiv01=done") < 0 ){
-    document.all['divpop01'].style.visibility = "visible";
-    }
-    else {
-        document.all['divpop01'].style.visibility = "hidden";
-}
+<!-- 모바일 팝업 -->
+<div id="k_popup_mo" class="show">
+	<div class="popup_overlay">
+		<div class="popup_body">
+			<a href="javascript:closePopMO();" class="popup_close_x">팝업닫기 X</a>
+			<div class="swiper-container mo_swiper">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide"><a href="/guest"><img src="ver01/img/pop_0902_01.png" width="100%"></a></div>
+					<div class="swiper-slide"><a href="https://www.cbe.go.kr/news/na/ntt/selectNttInfo.do?mi=10301&nttSn=1558531" target="_blank"><img src="ver01/img/pop_1030_02.jpg" width="100%"></a></div>
+				</div>
+				<div class="pop_nav">
+					<div class="swiper-button-prev-pop"><div></div></div>
+					<div class="pop-pagination"></div>
+					<div class="swiper-button-next-pop"><div></div></div>
+				</div>
+			</div>
+		</div>
+		<a href="javascript:closePopMO();" class="popup_bg"></a>
+	</div>
+</div>
 
-function setcookie( name, value, expirehours ) {
-var todayDate = new Date();
-todayDate.setHours( todayDate.getHours() + expirehours );
-document.cookie = name + "=" + escape( value ) + "; path=/; expires=" + todayDate.toGMTString() + ";"
-}
-function closeWin01() {
-if ( document.notice_form01.chkbox01.checked ) {
-setcookie( "maindiv01", "done" , 24 );
-}
-if(typeof(document.all['divpop01']) != "undefined") {
-document.all['divpop01'].style.display = "none";
-}
-}
+<script>
+function closePopPC(){document.getElementById('k_popup_pc').style.display='none'}
+function closePopMO(){document.getElementById('k_popup_mo').style.display='none'}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.4.6/js/swiper.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+	if(window.innerWidth<1000){
+		new Swiper('.mo_swiper',{
+			slidesPerView:1,speed:600,loop:false,
+			pagination:{el:'.pop-pagination',type:'fraction',renderFraction:function(c,t){return '<span class="'+c+'"></span> I <span class="'+t+'"></span>'}},
+			navigation:{nextEl:'.swiper-button-next-pop',prevEl:'.swiper-button-prev-pop'}
+		});
+	}
+});
 </script>
 <!--e레이어팝업------------------------------------------------------------------------------------------------->
 
