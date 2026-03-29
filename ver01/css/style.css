@@ -199,14 +199,14 @@ transition:all 0.5s ease .1s;
 .sub07p .simg .tab_f li.st07 a,
 .sub08p .simg .tab_f li.st08 a
 {color:#fff; background:#d4a187;}
-.busip .simg .tab_f li {width:20%;}
+.busip .simg .tab_f li {width:25%;}
 .danp .simg .tab_f li {width:20%;}
 .famp .simg .tab_f li {width:50%;}
 .famp.tab_add_unitp .simg .tab_f li {width:12.5%;}
 .prp .simg .tab_f li, .pressp .simg .tab_f li, .wishp .simg .tab_f li, .reserp .simg .tab_f li  {width:33.3%;}
 .rentp .simg .tab_f li {width:20%;}
 .salep .simg .tab_f li {width:25%;}
-.rsp .simg .tab_f li {width:20%;}
+.rsp .simg .tab_f li {width:33.3%;}
 
 .tab02 {overflow:hidden; margin:-2vw 0 3vw 0; border-top:#ddd 1px solid;}
 .tab02 li {float:left; text-align:center; cursor:pointer; line-height:3vw; 
@@ -469,8 +469,7 @@ transition:all 0.5s ease .1s; text-align:left;
 .simg .tab_f li a {height:40px; line-height:40px; font-size:12px;}
 .rentp .simg .tab_f li {width:50%;}
 .rentp .simg .tab_f li+li+li {width:33.3%;}
-.rsp .simg .tab_f li {width:50%;}
-.rsp .simg .tab_f li+li+li {width:33.3%;}
+.rsp .simg .tab_f li {width:33.3%;}
 
 .tab02 {margin:20px 0 40px 0;}
 .tab02 li {font-size:12px; line-height:40px;}
