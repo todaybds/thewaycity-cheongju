@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<link rel="stylesheet" type="text/css" href="/ver01/css/style.css?v08" />
+<link rel="stylesheet" type="text/css" href="/wish/style.css?v02" />
+<link rel="stylesheet" href="/common/css/reset.css?ver=20260323122631">
+<link rel="stylesheet" href="/common/css/component.css?ver=20260323122631">
+<meta charset="utf-8">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="keywords" content="방문예약 | 신분평 더웨이시티" />
+<meta name="description" content="신분평 더웨이시티 방문예약">
+<meta property="og:type" content="website">
+<meta property="og:title" content="방문예약 | 신분평 더웨이시티">
+<meta property="og:image" content="/img/sns_thum.jpg" />
+<meta property="og:description" content="신분평 더웨이시티 방문예약">
+<meta property="og:url" content="https://www.xn--9m1b56qknena672c9xaj2f8zko8o45b.com/guest">
+<meta name="format-detection" content="telephone=no" />
+<title>방문예약 | 신분평 더웨이시티</title>
+<meta name="viewport" content="initial-scale=1.0, maximum-scale=3.0, minimum-scale=1.0, width=device-width">
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.cycle2/2.1.6/jquery.cycle2.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.cycle2/2.1.6/jquery.cycle2.carousel.js"></script>
+<script src="https://malsup.github.io/jquery.cycle2.swipe.js"></script>
+<script src="/common/ckeditor/info.js?ver=20260323122631"></script>
+<script src="/common/js/fboard.js?ver=20260323122631"></script>
+<script src="/common/js/member.js?ver=20260323122631"></script>
+<!-- Favicon -->
+<link rel="icon" sizes="192x192" href="https://static.wixstatic.com/ficons/9b4f4f_6e05f58769cd4931aee8cb1b49eb6b18%7Emv2.ico" type="image/x-icon"/>
+<link rel="shortcut icon" href="https://static.wixstatic.com/ficons/9b4f4f_6e05f58769cd4931aee8cb1b49eb6b18%7Emv2.ico" type="image/x-icon"/>
+<link rel="apple-touch-icon" href="https://static.wixstatic.com/ficons/9b4f4f_6e05f58769cd4931aee8cb1b49eb6b18%7Emv2.ico" type="image/x-icon"/>
+<!-- Naver Verification -->
+<meta name="naver-site-verification" content="544c0f6159c8253ffd8a3b620c37f4483460746d" />
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DYEW8WL6K8"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-DYEW8WL6K8");</script>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({"gtm.start":new Date().getTime(),event:"gtm.js"});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!="dataLayer"?"&l="+l:"";j.async=true;j.src="https://www.googletagmanager.com/gtm.js?id="+i+dl;f.parentNode.insertBefore(j,f);})(window,document,"script","dataLayer","GTM-T4XBX3HN");</script>
+<!-- Kakao Pixel -->
+<script type="text/javascript" src="//t1.daumcdn.net/kas/static/kp.js"></script>
+<script type="text/javascript">kakaoPixel("7258191878360418605").pageView();</script>
+<!-- Boraware -->
+<script type="text/javascript">var protect_id="i814";</script>
+<script async type="text/javascript" src="//script.boraware.kr/protect_script_v2.js"></script>
+<!-- Antifraud -->
+<script src="/antifraud.js"></script>
+</head>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@1.0/nanumsquare.css">
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;600&display=swap" rel="stylesheet"><script type="text/javascript">
+function modify_gogo(yy, mm, dd, time, number) {
+  if(number > 0) {
+    location.href = "?actionMode=write&yy="+yy+"&mm="+mm+"&dd="+dd+"&time="+time+"#agree_wp";
+  } else {
+    alert("해당 시간은 마감 되었습니다.");
+    return false;
+  }
+}
+
+function write_gogo() {
+  var rr_agree1 = $("input[name=rr_agree1]:checked").val();
+  if(rr_agree1 != "y") {
+    alert("개인정보 수집 및 이용동의를 해야 등록 가능합니다.");
+    $("#rr_agree1_y").focus();
+    return false;
+  }
+
+  var rr_tel = $("#rr_tel").val();
+  if(rr_tel.length != 11) {
+    alert("연락처는 숫자 11자리로 입력해 주세요.");
+    $("#rr_tel").focus();
+    return false;
+  }
+  if(confirm("2026-04- 에 방문예약 하겠습니까?")) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function confirm_gogo() {
+  $("#actionMode").val("confirm");
+  $("#tmform").submit();
+}
+
+function cancel_gogo() {
+  if(confirm("예약취소 하겠습니까?")) {
+    $("#actionMode").val("cancel");
+    $("#tmform").submit();
+  } else {
+    return false;
+  }
+}
+
+$(function() {
+	$(document).on("keyup", "input:text[numberOnly]", function() {
+		$(this).val( $(this).val().replace(/[^0-9]/gi,"") );
+	});
+});
+
+</script>
+
+<script>
+$('document').ready(function() {
+  var area0 = ["시/도 선택","서울특별시","부산광역시","대구광역시","인천광역시","광주광역시","대전광역시","울산광역시","세종특별자치시","경기도","충청북도","충청남도","전라북도","전라남도","경상북도","경상남도","제주특별자치도","강원특별자치도"];
+  var area1 = ["강남구","강동구","강북구","강서구","관악구","광진구","구로구","금천구","노원구","도봉구","동대문구","동작구","마포구","서대문구","서초구","성동구","성북구","송파구","양천구","영등포구","용산구","은평구","종로구","중구","중랑구"];
+  var area2 = ["강서구","금정구","남구","동구","동래구","부산진구","북구","사상구","사하구","서구","수영구","연제구","영도구","중구","해운대구","기장군"];
+  var area3 = ["남구","달서구","동구","북구","서구","수성구","중구","달성군"];
+  var area4 = ["계양구","남구","남동구","동구","부평구","서구","연수구","중구","강화군","옹진군"];
+  var area5 = ["광산구","남구","동구","북구","서구"];
+  var area6 = ["대덕구","동구","서구","유성구","중구"];
+  var area7 = ["남구","동구","북구","중구","울주군"];
+  var area8 = ["조치원읍","연기면","연동면","부강면","금남면","장군면","연서면","전의면","전동면","소정면","한솔동","도담동","아름동","종촌동","고운동","보람동","새롬동","대평동","소담동","다정동","해밀동","반곡동","나성동","어진동"];
+  var area9 = ["고양시","과천시","광명시","광주시","구리시","군포시","김포시","남양주시","동두천시","부천시","성남시","수원시","시흥시","안산시","안성시","안양시","양주시","오산시","용인시","의왕시","의정부시","이천시","파주시","평택시","포천시","하남시","화성시","가평군","양평군","여주군","연천군"];
+  var area10 = ["제천시","청주시","충주시","괴산군","단양군","보은군","영동군","옥천군","음성군","증평군","진천군","청원군"];
+  var area11 = ["계룡시","공주시","논산시","보령시","서산시","아산시","천안시","금산군","당진군","부여군","서천군","연기군","예산군","청양군","태안군","홍성군"];
+  var area12 = ["군산시","김제시","남원시","익산시","전주시","정읍시","고창군","무주군","부안군","순창군","완주군","임실군","장수군","진안군"];
+  var area13 = ["광양시","나주시","목포시","순천시","여수시","강진군","고흥군","곡성군","구례군","담양군","무안군","보성군","신안군","영광군","영암군","완도군","장성군","장흥군","진도군","함평군","해남군","화순군"];
+  var area14 = ["경산시","경주시","구미시","김천시","문경시","상주시","안동시","영주시","영천시","포항시","고령군","군위군","봉화군","성주군","영덕군","영양군","예천군","울릉군","울진군","의성군","청도군","청송군","칠곡군"];
+  var area15 = ["거제시","김해시","마산시","밀양시","사천시","양산시","진주시","진해시","창원시","통영시","거창군","고성군","남해군","산청군","의령군","창녕군","하동군","함안군","함양군","합천군"];
+  var area16 = ["서귀포시","제주시","남제주군","북제주군"];
+  var area17 = ["강릉시","동해시","삼척시","속초시","원주시","춘천시","태백시","고성군","양구군","양양군","영월군","인제군","정선군","철원군","평창군","홍천군","화천군","횡성군"];
+
+  // 시/도 선택 박스 초기화
+  $("select[name=rr_address]").each(function() {
+    $selsido = $(this);
+    $.each(eval(area0), function() {
+      $selsido.append("<option value='"+this+"'>"+this+"</option>");
+    });
+    $selsido.next().append("<option value=''>구/군 선택</option>");
+  });
+
+
+  // 시/도 선택시 구/군 설정
+  $("select[name=rr_address]").change(function() {
+    var area = "area"+$("option",$(this)).index($("option:selected",$(this))); // 선택지역의 구군 Array
+    var $gugun = $(this).next(); // 선택영역 군구 객체
+    $("option",$gugun).remove(); // 구군 초기화
+
+    if(area == "area0") {
+      $gugun.append("<option value=''>구/군 선택</option>");
+    } else {
+      $.each(eval(area), function() {
+        $gugun.append("<option value='"+this+"'>"+this+"</option>");
+      });
+    }
+  });
+});
+</script>
+
+<link rel="stylesheet" type="text/css" href="/common/css/reservation.css" />
+<body class="subp sub05p  ssub01p wishp reserp">
+
+  <div id="header">
+	<div class="wrap">
+		<a href="/" class="ci"><img src="/ver01/img/bi_white.png" alt=""/></a>
+		<ul class="gnb">
+			<li class="t01"><a href="/ver01/busi/cont01.html">사업안내</a>
+				<ul>
+					<li class="st01"><a href="/ver01/busi/cont01.html">사업개요</a></li>
+					<li class="st02"><a href="/ver01/busi/cont02.html">입지환경</a></li>
+					<li class="st03"><a href="/ver01/busi/cont03.html">프리미엄</a></li>
+					<li class="st05"><a href="/ver01/busi/cont05.html">시공사소개</a></li>
+					<li class="st04"><a href="/ver01/busi/cont04.html">오시는길</a></li>
+				</ul>
+			</li>
+			<li class="t02"><a href="/ver01/dan/cont01.html">단지안내</a>
+				<ul>
+					<li class="st01"><a href="/ver01/dan/cont01.html">단지/동호수 배치도</a></li>
+					<li class="st02"><a href="/ver01/dan/cont02.html">조경안내</a></li>
+					<li class="st03"><a href="/ver01/dan/cont03.html">커뮤니티</a></li>
+					<li class="st04"><a href="/ver01/dan/cont04.html">주거 프리미엄</a></li>
+					<li class="st05 line02"><a href="/ver01/dan/cont05.html">이동통신설비 <br/>협의결과서</a></li>
+				</ul>
+			</li>
+			<li class="t06"><a href="/ver01/rs/cont01.html" style="padding:0 4vw;">공급안내</a>
+				<ul>
+					<li class="st01"><a href="/ver01/rs/cont01.html">장기일반민간임대주택 이란?</a></li>
+					<li class="st02"><a href="/ver01/rs/cont02.html">공급안내</a></li>
+					<li class="st03"><a href="/ver01/rs/cont03.html">모집공고</a></li>
+					<li class="st04"><a href="/ver01/rs/cont04.html">인지세 안내문</a></li>
+					<li class="st05"><a href="/ver01/rs/cont06.html">명의변경 안내문</a></li>
+					<!-- <li class="st05"><a href="/ver01/rs/cont05.html">중도금 대출 안내</a></li> -->
+				</ul>
+			</li>
+			<li class="t03"><a href="/ver01/fam/cont01.html">세대안내</a>
+				<ul>
+					<li class="st01"><a href="/ver01/fam/cont01.html">59㎡</a></li>
+					<li class="st02"><a href="/ver01/fam/cont03.html">75㎡</a></li>
+					<li class="st03"><a href="/ver01/fam/cont06.html">84㎡</a></li>
+					<li class="st04"><a href="/ver01/fam/cont08.html">112㎡</a></li>
+				</ul>
+			</li>
+			<li class="t05"><a href="/ver01/pr/cont03.html">홍보센터</a>
+				<ul>
+					<!--
+					<li class="st02"><a href="/pr/event.html">이벤트 당첨자</a></li> -->
+					<li class="st03"><a href="/ver01/pr/cont03.html">홍보영상</a></li>
+					<li class="st04"><a href="/board/press.php">관련기사</a></li>
+					<li class="st01"><a href="/wish/wish.php">관심고객등록</a></li>
+					<!-- <li class="st05"><a href="/wish/reser.php?yy=2025&mm=11#calendar_wp_bk">방문예약</a></li> -->
+				</ul>
+			</li>
+		</ul>
+	</div>
+</div>
+<ul class="quick">
+	<li><a href="/wish/wish.php">관심고객등록</a></li>
+	<li><a href="tel:1533-6100">1533-6100</a></li>
+</ul>
+<ul class="btn_all">
+	<li>
+		<div class="line01"></div>
+		<div class="line02"></div>
+		<div class="line03"></div>
+	</li>
+</ul>
+
+<script>
+$(document).ready(function(){
+	$(".btn_all").click(function(){
+		$(".gnb").toggleClass('on');
+		$(".r_menu").toggleClass('view on');
+		$(".quick").toggleClass('view');
+		$(this).toggleClass('close');
+	});
+	$(".btn_all li").click(function(){
+		$(this).removeClass('close');
+		$(".btn_all li").not($(this)).addClass('on');
+	});
+});
+$(document).on('click', '.soon', function() {
+    alert('준비중입니다');
+});
+$(document).on('click', '.soon02', function() {
+    alert('7월 8일(화) 14:00 이후 확인가능');
+});
+</script>  	<div class="simg">
+		<div>
+			<div class="mt"></div>
+		</div>
+		<ul class="tab_f"></ul>
+	</div>
+
+<script>
+$(function() {
+	var loc = window.location.href; // returns the full URL
+	if(/press/.test(loc)) {
+		$('body').addClass('pressp subp');
+	}
+	//
+	if($('body').is('.busip')){
+		var contents = $('.gnb .t01 ul').html();
+	}
+	if($('body').is('.busip')){
+		var mt = 'SUMMARY';
+	}
+	if($('body').is('.danp')){
+		var contents = $('.gnb .t02 ul').html();
+		var mt = 'Site plan';
+	}
+	if($('body').is('.famp')){
+		//var contents = $('.gnb .t03 ul').html();
+		//var mt = 'Unit plan';
+	}
+	if($('body').is('.famp.tab_add_unitp')){
+		var contents = $('.tab_add').html();
+		var mt = 'Unit plan';
+	}
+	if($('body').is('.salep')){
+		var contents = $('.gnb .t04 ul').html();
+		var mt = 'Apply guide';
+	}
+	if($('body').is('.infop')){
+		var contents = $('.gnb .t04 ul').html();
+		var mt = 'Information';
+
+	}
+	if($('body').is('.rsp')){
+		var contents = $('.gnb .t06 ul').html();
+		var mt = 'Supply Information';
+	}
+	if($('body').is('.contractp')){
+		var contents = $('.gnb .t08 ul').html();
+		var mt = 'Contract';
+	}
+	if($('body').is('.prp, .wishp, .pressp, .reserp')){
+		var mt = 'PR center';
+		var contents = $('.gnb .t05 ul').html();
+	}
+	if($('body').is('.visit')){
+		var mt = '방문등록';
+	}
+	/*if($('body').is('.reserp')){
+		var mt = '일반분양 중도금 대출 신청';
+	}*/
+	$(".simg .mt").append(mt);
+	$(".tab_f").append(contents);
+});
+</script>  
+  <div id="scont">
+  			<ul class="tab02">
+				<li class="st01"><a href="/wish/reser.php?yy=2025&mm=11#calendar_wp_bk">방문예약 신청</a></li>
+				<li class="st02"><a href="/wish/reser_confirm.php">방문예약 확인 및 취소</a></li>
+			</ul>	<!-- <div class="title">방문예약 신청</div> -->
+    <form name="tmform" id="tmform" method="post" action="reser_ok.php" onsubmit="return write_gogo();">
+    <input type="hidden" name="actionMode" id="actionMode" value="" />
+    <input type="hidden" name="yy" id="yy" value="2026" />
+    <input type="hidden" name="mm" id="mm" value="04" />
+    <input type="hidden" name="dd" id="dd" value="" />
+    <input type="hidden" name="time" id="time" value="" />
+
+    <div class="reservation_wp">
+      <div class="container">
+
+        <!-- <div class="atten"><span>유의사항</span> : 홈페이지에서 방문예약 신청을 해주시면 개별 상담사가 별도의 확인전화를 통하여 예약확정을 도와드리겠습니다.<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;프라이빗한 관람 및 코로나19 바이러스 예방을 위하여 3인이하 방문예약이 가능합니다.</div> -->
+                <div id="tab01" class="tab_content on">
+
+          <div class="calendar_wp clearfix" id="calendar_wp">
+            <div class="calendar">
+              <div class="top clearfix">
+                <!-- <h6>예약날짜 선택</h6> -->
+                <div>
+                  <div class="color blue"></div>
+                  <span>예약가능</span>
+                  <!-- <div class="color gray"></div>
+                  <span>예약불가</span> -->
+                </div>
+              </div><!--// top -->
+              <div class="content">
+                <table>
+                  <colgroup>
+                    <col width="14.58%">
+                    <col width="14.58%">
+                    <col width="14.58%">
+                    <col width="14.58%">
+                    <col width="14.58%">
+                    <col width="14.58%">
+                    <col width="14.58%">
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th colspan="7">
+                        <a href="?yy=2026&mm=3#calendar_wp_bk" class="btn_left">
+                          <img src="/img/left_icon.png" alt="">
+                        </a>
+                        <span>2026.04</span>
+                        <a href="?yy=2026&mm=5#calendar_wp_bk" class="btn_right">
+                          <img src="/img/right_icon.png" alt="">
+                        </a>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="week">
+                      <td class="sunday">일</td>
+                      <td>월</td>
+                      <td>화</td>
+                      <td>수</td>
+                      <td>목</td>
+                      <td>금</td>
+                      <td class="saturday">토</td>
+                    </tr>
+                                        <tr>
+                                            <td>
+                                              </td>
+                                            <td>
+                                              </td>
+                                            <td>
+                                              </td>
+                                            <td>
+                        1                      </td>
+                                            <td>
+                        <a href='?actionMode=modify&yy=2026&mm=04&dd=2#date_list_wp' class='on'>2</a>                      </td>
+                                            <td>
+                        <a href='?actionMode=modify&yy=2026&mm=04&dd=3#date_list_wp' class='on'>3</a>                      </td>
+                                            <td>
+                        <a href='?actionMode=modify&yy=2026&mm=04&dd=4#date_list_wp' class='on'>4</a>                      </td>
+                                          </tr>
+                                        <tr>
+                                            <td>
+                        <a href='?actionMode=modify&yy=2026&mm=04&dd=5#date_list_wp' class='on'>5</a>                      </td>
+                                            <td>
+                        6                      </td>
+                                            <td>
+                        7                      </td>
+                                            <td>
+                        8                      </td>
+                                            <td>
+                        9                      </td>
+                                            <td>
+                        10                      </td>
+                                            <td>
+                        11                      </td>
+                                          </tr>
+                                        <tr>
+                                            <td>
+                        12                      </td>
+                                            <td>
+                        13                      </td>
+                                            <td>
+                        14                      </td>
+                                            <td>
+                        15                      </td>
+                                            <td>
+                        16                      </td>
+                                            <td>
+                        17                      </td>
+                                            <td>
+                        18                      </td>
+                                          </tr>
+                                        <tr>
+                                            <td>
+                        19                      </td>
+                                            <td>
+                        20                      </td>
+                                            <td>
+                        21                      </td>
+                                            <td>
+                        22                      </td>
+                                            <td>
+                        23                      </td>
+                                            <td>
+                        24                      </td>
+                                            <td>
+                        25                      </td>
+                                          </tr>
+                                        <tr>
+                                            <td>
+                        26                      </td>
+                                            <td>
+                        27                      </td>
+                                            <td>
+                        28                      </td>
+                                            <td>
+                        29                      </td>
+                                            <td>
+                        30                      </td>
+                                            <td>
+                                              </td>
+                                            <td>
+                                              </td>
+                                          </tr>
+                                      </tbody>
+                </table>
+              </div><!--// content -->
+            </div><!--// calendar -->
+
+                        <div class="date_list_wp" id="date_list_wp">
+              <div class="top clearfix">
+                <!-- <h6>예약시간 선택</h6> -->
+                <!-- <div>
+                  <div class="color blue"></div>
+                  <span>예약가능</span>
+                  <div class="color gray"></div>
+                  <span>예약불가</span>
+                </div> -->
+              </div><!--// top -->
+              <div class="date_list">
+                <h6></h6>
+                <div class="list">
+                                  </div><!--// list -->
+              </div><!--// date_list -->
+            </div><!--// date_list_wp -->
+                      </div><!--// calendar_wp -->
+
+                  </div><!--// tab01 -->
+              </div><!--// container -->
+    </div><!--// reservation_wp -->
+
+    </form>
+
+  </div>
+
+<div id="footer">
+	<div class="wrap">
+		<div class="ct">
+			<div>신분평 더웨이시티</div>
+			시행 (유)에이치엠서빈 서울특별시 강남구 학동로50길 23, 5층(논현동)<span class="line"></span>사업자번호 646-86-01599<span class="line sec"></span>대표 최명훈<br/>
+			견본주택. 청주시 상당구 용암동 2980번지<span class="line"></span>현장. 청주시 서원구 장성동 204번지 일원
+			<div class="duck_foot">
+				본 사이트의 CG, 이미지, 내용 등은 소비자의 이해를 돕기 위해 제작된 것으로 실제와 차이가 있을 수 있으며 제작과정상 오류가 있을 수 있습니다.
+			</div>
+		</div>
+		<div class="copy">ⓒ Shinbunpyeong The Way City ALL RIGHTS RESERVED</div>
+	</div>
+</div>
+
+<script type="text/javascript" src="//wcs.naver.net/wcslog.js"></script>
+<script type="text/javascript">
+if(!wcs_add) var wcs_add = {};
+wcs_add["wa"] = "16069f531c9f3d0";
+if(window.wcs) {
+  wcs_do();
+}
+</script>
+</body>
+</html>

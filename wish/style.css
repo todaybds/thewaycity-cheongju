@@ -1,0 +1,76 @@
+/*관심고객*/
+/* .wishp #scont {font-size:12px; font-family:'Noto Sans KR',Noto Sans KR; line-height:20px; left:0; position:relative; opacity:1; width:1200px; margin:0 auto; padding:100px 0;} */
+.wishp table {border-top:#272759 2px solid; margin-bottom:10px;}
+.wishp table thead {color:#000; font-weight:500;}
+/* .wishp table.write {margin-bottom:20px;} */
+.wishp table td input[type=text], input[type=button] {background:#f8f8f8; border:#eaeaea 1px solid; height:40px; max-width:100%;}
+.wishp input[type=submit] {background:#06203e; color:#fff;}
+.wishp label {cursor:pointer;}
+.wishp table.write th {width:8vw;}
+.wishp #interRegForm dl th {width:12vw;}
+.wishp form .duck_foot {padding-top:0;}
+input[type=button], input[type=submit] {cursor:pointer;}
+input.color {background:#06203e !important; border:#06203e 1px solid !important; color:#fff !important;}
+.wishp #scont dl {margin:40px 0;}
+/* .wishp .sec table td {text-align:center;} */
+.wishp #scont dl dt {font-size:14px; color:#333; margin-bottom:10px;}
+.wishp #scont dl dt div {font-size:12px; color:#777;}
+.wishp #scont dl textarea {width:100%; height:270px; border:#ddd 1px solid; padding:15px; color:#888; overflow:hidden; font-weight:normal; line-height:22px;}
+.wishp #scont dl.sec textarea {height:160px;}
+.wishp .agree, .wishp .agree02 {margin-bottom:20px; padding:0px 10px; color:#999;}
+.wishp .bbs_btn {text-align:center; padding-top:20px;}
+.bo_fx {margin-top: 30px;}
+.wishp .bbs_btn input, .btn_b02,
+.wishp .bo_fx *
+{border:#eaeaea 1px solid; background:#fff; height:40px; line-height:40px; padding:0 30px; margin:0 2px; font-weight:500; display: inline-block; color:#333;}
+.reserp #listForm>div:first-child {margin-bottom:20px;}
+.reserp #listForm>div:first-child span {font-size:14px; padding:0 10px;}
+
+.sound_only, caption {display: none;}
+
+.allCheck_wrap label {text-align:center; background:#f8f9fb; color:#000; padding:1vw; font-size:1vw; font-weight:500;
+	border:#ddd 1px solid; display:block; cursor:pointer; margin:2vw 0 0 0;
+}
+
+/*모바일*************************************************************/
+@media all and (max-width:1099px) {
+
+/*관심고객*/
+.wishp #scont {font-size:12px; line-height:20px; left:0; position:relative; opacity:1; width:100%; padding:15px; margin:0 0 80px 0;
+-webkit-transition:all 1.5s ease .1s;
+-moz-transition:all 1.5s ease .1s;
+-ms-transition:all 1.5s ease .1s;
+-o-transition:all 1.5s ease .1s;
+transition:all 1.5s ease .1s;
+}
+.wishp #scont.on {left:0; opacity:1;}
+.wishp #scont dl textarea {overflow:auto; font-size:11px; line-height:17px;}
+.wishp table.write th {width:100px;}
+.wishp table.write td input[type=text] {max-width:100% !important; width:100%;}
+.wishp table {background:#fff; border-top:#333 2px solid;}
+.wishp table th {font-weight:500; color:#333; border-right:#ddd 1px solid; 
+	border-left:#ddd 1px solid; width:160px;
+}
+.wishp table td {border-right:#ddd 1px solid;}
+.wishp table td label {}
+.wishp table td input[type=text], .wishp table td input[type=button] {background:#f8f8f8; border:#eaeaea 1px solid; height:30px; max-width:200px;}
+.wishp table .add input {margin-bottom:5px;}
+.wishp table .add input[type=button] {width:auto; margin-bottom:0;}
+input[type=button] {background:#fff; border:#ddd 1px solid; color:#333;}
+.wishp #scont dl dt {font-size:14px; color:#333;}
+.wishp #scont dl dt div {font-size:12px; color:#777;}
+.wishp #scont dl dt+dd {width:100%; overflow-x:auto;}
+.wishp #scont dl dt+dd table {width:550px;}
+.wishp #interRegForm dl th {width:160px;}
+.wishp .bbs_btn {text-align:center; padding-top:20px;}
+.wishp .bbs_btn>input,
+.wishp .bo_fx *, .wishp .bbs_btn>a
+{border:#eaeaea 1px solid; background:#fff; height:40px; line-height:40px; padding:0 30px; margin:0 2px; font-weight:500; display:inline-block;}
+.wishp .bbs_btn>a input {border:0;}
+.wishp #listForm>div {margin-bottom:20px;}
+.wishp #listForm>div span {display:inline-block; padding:0 10px;}
+/* .wishp .agree span {display:block;} */
+.allCheck_wrap {margin:30px 0 -20px 0;}
+.allCheck_wrap label {font-size:14px; padding:15px;}
+
+}

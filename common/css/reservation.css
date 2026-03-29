@@ -1,0 +1,392 @@
+.clearfix:after {
+	content:'';
+	display:block;
+	clear:both;
+}
+
+.title {font-size:30px; color:#000; text-align:center; margin-bottom:30px;}
+.wishp.sub02p .reservation_wp {border:#ddd 1px solid; padding:20px;}
+.reservation_wp .calendar_wp {overflow:hidden;}
+.reserp .reservation_wp .calendar_wp .calendar {
+	float:left;
+	width:calc(50% - 10px);
+	background:#fff;
+}
+
+.reser_adminp .reservation_wp .calendar_wp .date_list_wp {
+	width:calc(100% - 10px);
+}
+
+.reservation_wp .calendar_wp .date_list_wp {
+	float:right;
+	width:calc(50% - 10px);
+	background:#fff;
+}
+
+.reservation_wp .calendar_wp .top {
+	border:#ddd 1px solid;
+	border-top:#000 3px solid;
+	border-bottom:0;
+	background:#fff;
+	color:#111;
+	padding:8px 10px;
+}
+
+.reservation_wp .calendar_wp .top h6 {
+	float:left;
+	font-size: 14px;
+	margin: 0;
+	color:#111;
+}
+
+.reservation_wp .calendar_wp .top > div {
+	float:right;
+}
+
+.reservation_wp .calendar_wp .top > div span {
+	font-size: 14px;
+}
+
+.reservation_wp .calendar_wp .top > div div {
+	display:inline-block;
+	width:12px;
+	height:12px;
+	margin-right: 3px;
+}
+
+.reservation_wp .calendar_wp .top > div div.blue {
+	background: #d1b078;
+	border: 1px solid #fff;
+}
+
+.reservation_wp .calendar_wp .top > div div.gray {
+	background: #b0b4b5;
+	border: 1px solid #000;
+	margin-left: 10px;
+}
+
+.reservation_wp .calendar_wp .calendar {width:70%;}
+
+.reservation_wp .calendar_wp .calendar .content {
+	border: 1px solid #ccc; border-top:0;
+	padding: 10px 15px 20px;
+	letter-spacing: 1px;
+}
+
+.reservation_wp .calendar_wp .calendar table {
+	width:100%; border:#ddd 1px solid; margin:0;
+}
+
+.reservation_wp .calendar_wp .calendar table tr {
+	border-bottom: 1px solid #ccc;
+}
+
+.reservation_wp .calendar_wp .calendar table thead tr {
+	border-bottom: 0;
+}
+
+.reservation_wp .calendar_wp .calendar table tr th a {
+	display:inline-block;
+	padding: 0 7px;
+}
+
+.reservation_wp .calendar_wp .calendar table tr th a { 
+	margin:0 10px;
+}
+.reservation_wp .calendar_wp .calendar table tr th a img { 
+	margin-top:0px;
+}
+
+.reservation_wp .calendar_wp .calendar table thead tr th span {
+	font-size: 14px;
+	color:#222;
+}
+
+.reservation_wp .calendar_wp .calendar table tr th,
+.reservation_wp .calendar_wp .calendar table tr td {
+	padding:0; height:50px; line-height:50px;
+	font-size: 13px;
+	text-align: center;
+}
+
+.reservation_wp .calendar_wp .calendar table tr td a {
+	background: none;
+	display:block; height:100%;
+}
+
+.reservation_wp .calendar_wp .calendar table tr td a.none {
+	background: #b0b4b5;
+	color:#fff;
+}
+
+.reservation_wp .calendar_wp .calendar table tr td a.on {
+	background: #d1b078;
+	color:#fff;
+
+}
+
+.reservation_wp .date_list {
+	border: 1px solid #ccc;
+	border-top:0;
+	padding: 10px 15px 20px;
+	position:relative;
+	height:100%;
+}
+
+.reservation_wp .date_list h6 {
+	font-size:30px;
+	margin:5px 0;
+	text-align:center !important;
+	font-weight: 600;
+	letter-spacing: 0.7px;
+	color:#222;
+}
+
+.reservation_wp .date_list .list {
+	height:336px; overflow-y:auto; border:#ddd 1px solid;
+}
+.reser_adminp .reservation_wp .date_list .list {
+	height:240px;
+}
+
+.reservation_wp .date_list .list .content {
+	background: #fff;
+	border-top: 1px solid #ccc;
+	border-right:0; border-left:0;
+	display:block;
+	padding:5px 15px;
+	margin-top: -1px;
+	letter-spacing: 1px;
+}
+
+.reservation_wp .date_list .list .content:after {
+	content:'';
+	display:block;
+	clear:both;
+}
+
+.reservation_wp .date_list .list .content span {
+	float:left;
+	font-size: 13px;
+	line-height:40px;
+}
+
+.reservation_wp .date_list .list .content div {
+	float:right;
+	font-size:12px;
+	display:inline-block;
+	padding:0 10px;
+	background: #d1b078 !important;
+	color:#fff;
+}
+
+.reservation_wp .date_list .list .content.on {
+	background: #d1b078;
+}
+
+.reservation_wp .date_list .list .content.on span {
+	color:#fff;
+}
+
+.reservation_wp .date_list .list .content.on div {
+	background: #fff;
+	color:#fff;
+	font-weight: 600;
+	
+}
+.reservation_wp .date_list .all_click_wp {
+	text-align: right;
+	margin:10px 0;
+}
+
+.reservation_wp .date_list .all_click,
+.reservation_wp .date_list .all_unclick {
+	display:inline-block;
+	width:70px;
+	line-height: 32px;
+	border: 1px solid #ccc;
+	text-align: center;
+	cursor:pointer;
+}
+
+.reservation_wp .date_list .all_click {
+	background:#d1b078;
+	color:#fff;
+	border: 1px solid #fff;
+}
+
+.reservation_wp .date_list .all_unclick {
+	background: #b0b4b5;
+	color:#fff;
+	border: 1px solid #b0b4b5;
+}
+
+.search  {
+	margin-bottom: 20px;
+	position: relative;
+}
+
+.search .search_btn {
+    border: 1px solid #ccc;
+    height: 27px;
+    width: 40px;
+    background: #fff;
+}
+
+.bbs_btn .personnel {
+	display:inline-block;
+}
+
+.bbs_btn .personnel input {
+	background: #fff !important;
+}
+
+
+.reservation_info {
+	margin: 20px 0 0;
+}
+
+.reservation_info .content {
+	float:left;
+	margin-right: 20px;
+}
+
+.reservation_info .content:last-child {
+	margin-right: 0;
+}
+
+.reservation_info .content input {
+	width:180px;
+	height:40px;
+}
+
+
+.reservation_wp .agree_wp {float:right;
+	width:calc(50% - 10px); background:#fff;
+}
+
+.reservation_wp .tab_content h6 {
+	text-align:left;
+	margin:10px 0;
+	color:#d1b078;
+	font-weight:300;
+}
+
+.reservation_wp .agree_wp .agree_radio {
+	margin: 10px 0 20px; font-size:12px;
+}
+
+.reservation_wp .agree_wp .agree_radio h6 {
+	float:left;
+}
+
+.reservation_wp .agree_wp .agree_radio div {
+	float:left;
+	margin: 2px 0 0 15px;
+}
+
+.reservation_wrap {width:calc(50% - 10px); background:#fff; float:left;}
+
+.reservation_date div {
+	border:2px solid #d1b078;
+	background: #fff;
+	padding:10px;
+	text-align: left;
+	font-size: 14px;
+	letter-spacing: 0.7px;
+	color:#212121; font-weight:500;
+}
+
+.reservation_info {
+	margin: 10px 0;
+}
+
+.reservation_info .content {
+	float:left;
+	margin-bottom:5px;
+	width:100%;
+}
+
+.reservation_info .content:last-child {
+	margin-right: 0;
+}
+
+.reservation_wp .btn_wp {
+	margin: 40px 0; text-align:center; float:left; width:100%;
+}
+.reservation_wp .btn_wp p {margin-top:10px; color:#d1b078;}
+
+.reservation_wp .btn_wp a,
+.reservation_wp .btn_wp input {
+	display:inline-block;
+	line-height: 38px;
+	width:120px;
+	font-size: 15px;
+	background: #efefef;
+	border: 1px solid #ccc;
+}
+
+.reservation_wp .btn_wp a.btn01,
+.reservation_wp .btn_wp input.btn01 {
+	color:#d1b078;
+	background:#000; border:#000 1px solid; height:40px; line-height:40px; padding:0;
+}
+
+.reservation_wp .btn_wp a.btn02,
+.reservation_wp .btn_wp input.btn02{
+	margin-right: 10px; height:40px; line-height:40px; padding:0;
+}
+
+.reservation_wp .confirm_wp .content {
+	text-align: left;
+	margin-bottom: 5px;
+}
+
+.reservation_wp .confirm_wp {
+	margin: 30px auto;
+	width: 410px;
+	padding:15px;
+	border:0;
+}
+
+.reservation_wp .confirm_wp h6 {
+	display:inline-block;
+	font-size: 15px;
+}
+
+
+.reservation_tail {
+	margin-top: 20px;
+    text-align: left;
+    font-size: 13px;
+	letter-spacing: -0.1px;
+	line-height: 20px;
+}
+.reservation_wp .confirm_wp input {
+	width:200px;
+	height:	34px;
+}
+
+.reserp .bbs_btn {text-align:center; padding-top:20px;}
+
+#tmform {background:#fff; overflow:hidden;}
+.reser_adminp #tmform {border:0; border-top:0; padding:0; margin-top:0; overflow:hidden; background:none;}
+#tmform textarea {width:100%; border:#ddd 1px solid; background:#f8f8f8; font-size:12px; color:#999; padding:15px;}
+#tmform input[type=text], #tmform select {border:#ddd 1px solid; width:100%; height:40px; line-height:40px;}
+
+
+
+@media all and (max-width:1099px) {
+.reservation_wp .calendar_wp .calendar {width:100% !important; float:none;}
+.reservation_wp .calendar_wp .calendar table td {padding:0 !important;}
+.reservation_wp .calendar_wp .date_list_wp {width:100%; margin-top:20px;}
+.reservation_info .content {margin:0 0 5px 0; width:100%;}
+.reservation_info .content input {width:100%;}
+
+.reservation_wp .agree_wp {width:100%;}
+.reservation_wrap {width:100%;}
+
+.reservation_wp .confirm_wp {width:100%;}
+
+#scont #tmform {padding:0;}
+}
