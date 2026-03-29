@@ -203,13 +203,14 @@ $(function() {
 .guest-wrap .g-line{width:1px;height:40px;background:#15233d;margin:0 auto 30px}
 .guest-wrap .g-info{background:#f8f5f0;padding:25px 20px;text-align:center;margin-bottom:40px;line-height:1.7;font-size:14px;letter-spacing:-0.03em}
 .guest-wrap .g-info strong{color:#15233d}
-.guest-wrap .g-section{font-size:16px;font-weight:600;margin-bottom:8px;letter-spacing:-0.03em}
+.guest-wrap .g-section{display:flex;justify-content:space-between;align-items:flex-end;font-size:16px;font-weight:600;letter-spacing:-0.03em;padding-bottom:12px;margin-bottom:0;border-bottom:2px solid #000}
 .guest-wrap .g-section span{color:#FF0408;font-weight:400}
-.guest-wrap .g-border{border-top:2px solid #d4a187;margin-bottom:20px}
-.guest-wrap .form-row{display:flex;align-items:stretch;border-bottom:1px solid #e5e5e5}
-.guest-wrap .form-label{width:120px;flex-shrink:0;font-size:14px;font-weight:500;display:flex;align-items:center;border-top:1px solid #e5e5e5;padding:18px 0}
+.guest-wrap .g-section .req-text{font-size:12px;color:#666;font-weight:400}
+.guest-wrap .form-group{margin-bottom:0}
+.guest-wrap .form-row{display:flex;align-items:stretch}
+.guest-wrap .form-label{width:120px;flex-shrink:0;font-size:14px;font-weight:500;display:flex;align-items:center;padding:18px 0;border-bottom:1px solid #e5e5e5}
 .guest-wrap .form-label .req{color:#FF4040;margin-left:3px}
-.guest-wrap .form-input{flex:1;display:flex;align-items:center;padding:18px 0 18px 10px;border-top:1px solid #e5e5e5}
+.guest-wrap .form-input{flex:1;display:flex;align-items:center;padding:18px 0 18px 10px;border-bottom:1px solid #e5e5e5}
 .guest-wrap .form-input input[type="text"],.guest-wrap .form-input input[type="tel"],.guest-wrap .form-input input[type="date"],.guest-wrap .form-input select{border:none;background:transparent;font-size:15px;color:#333;width:100%;max-width:300px;height:30px;padding:0;-webkit-appearance:none;appearance:none;border-radius:0;font-family:'Noto Sans KR',sans-serif}
 .guest-wrap .form-input input:focus,.guest-wrap .form-input select:focus{outline:none}
 .guest-wrap .form-input input::placeholder{color:#aaa}
@@ -222,9 +223,12 @@ $(function() {
 .guest-wrap .g-notice{margin:25px 0 40px;font-size:12px;color:#888;line-height:1.6;letter-spacing:-0.03em}
 .guest-wrap .privacy-title{font-size:16px;font-weight:600;color:#666;margin-bottom:12px}
 .guest-wrap .privacy-box{width:100%;height:160px;overflow-y:scroll;border:1px solid #e1e1e1;padding:18px;font-size:12px;line-height:1.6;color:#666;background:#f8f8f8;box-sizing:border-box;margin-bottom:15px}
+.guest-wrap .privacy-box::-webkit-scrollbar{width:8px}
+.guest-wrap .privacy-box::-webkit-scrollbar-track{background:#f1f1f1;border-left:1px solid #e1e1e1}
+.guest-wrap .privacy-box::-webkit-scrollbar-thumb{background:#bbb;border-radius:4px}
 .guest-wrap .consent-wrap{display:flex;gap:20px;justify-content:flex-end;font-size:14px;margin-bottom:40px}
 .guest-wrap .consent-wrap label{display:flex;align-items:center;gap:5px;cursor:pointer}
-.guest-wrap .consent-wrap input[type="radio"]{width:18px;height:18px;accent-color:#000;cursor:pointer}
+.guest-wrap .consent-wrap input[type="radio"]{width:18px;height:18px;accent-color:#000;cursor:pointer;margin:0}
 .guest-wrap .submit-area{text-align:center;margin-bottom:60px}
 .guest-wrap .submit-btn{width:200px;height:55px;background:#fff;border:1px solid #000;color:#000;font-size:16px;font-weight:500;cursor:pointer;transition:all 0.3s;-webkit-appearance:none;border-radius:0;font-family:'Noto Sans KR',sans-serif}
 .guest-wrap .submit-btn:hover{background:#000;color:#fff}
@@ -256,8 +260,8 @@ $(function() {
 	</div>
 
 	<!-- 기본정보 입력 -->
-	<div class="g-section">· 기본정보 입력 <span>(필수)</span></div>
-	<div class="g-border"></div>
+	<div class="g-section"><span>· 기본정보 입력 <span style="color:#FF0408;">(필수)</span></span><span class="req-text"><span style="color:#e00;">*</span> 표시는 필수 입력 항목입니다.</span></div>
+
 
 	<div class="form-row">
 		<div class="form-label">이름 <span class="req">*</span></div>
@@ -280,8 +284,8 @@ $(function() {
 	</div>
 
 	<!-- 견본주택 방문예약 -->
-	<div class="g-section" style="margin-top:40px;">· 견본주택 방문예약 (선택사항)</div>
-	<div class="g-border"></div>
+	<div class="g-section" style="margin-top:40px;"><span>· 견본주택 방문예약 (선택사항)</span></div>
+
 
 	<div class="form-row">
 		<div class="form-label">방문날짜</div>
@@ -311,8 +315,8 @@ $(function() {
 	</div>
 
 	<!-- 개인정보 수집 및 이용동의 -->
-	<div class="g-section">· 개인정보 수집 및 이용동의</div>
-	<div class="g-border"></div>
+	<div class="g-section"><span>· 개인정보 수집 및 이용동의</span></div>
+
 
 	<div class="privacy-box">
 		홈페이지에서 고객들의 원활한 서비스 이용을 위해 필요한 최소한의 범위로 개인정보를 수집합니다.<br><br>
