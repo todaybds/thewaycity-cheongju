@@ -40,26 +40,32 @@ export default async function handler(req, res) {
     const WIX_SITE_ID = (process.env.WIX_SITE_ID || '').trim();
     const WIX_COLLECTION_ID = (process.env.WIX_COLLECTION_ID || '').trim();
 
+    const phoneNum = body.phone ? Number(body.phone.replace(/[^0-9]/g, '')) : 0;
+
+    const data = {
+        "title_fld": body.name,
+        "newField": phoneNum,
+        "arraystring": body.interest || [],
+        "agree": body.agree || "",
+        "time": body.visitTime || "",
+        "reg_datetime": formattedDate,
+        "utm_source": body.utm_source || "",
+        "utm_medium": body.utm_medium || "",
+        "utm_campaign": body.utm_campaign || "",
+        "utm_term": body.utm_term || "",
+        "utm_content": body.utm_content || "",
+        "ip": body.ip_address || "",
+        "device": body.device || ""
+    };
+
+    // 방문날짜는 날짜 타입이므로 ISO 형식으로 전송
+    if (body.visitDate) {
+        data["date"] = body.visitDate;
+    }
+
     const dataItem = {
         dataCollectionId: WIX_COLLECTION_ID,
-        dataItem: {
-            data: {
-                "title": body.name,
-                "newField": body.phone,
-                "arraystring": body.interest || [],
-                "agree": body.agree || "",
-                "date": body.visitDate || "",
-                "time": body.visitTime || "",
-                "reg_datetime": formattedDate,
-                "utm_source": body.utm_source || "",
-                "utm_medium": body.utm_medium || "",
-                "utm_campaign": body.utm_campaign || "",
-                "utm_term": body.utm_term || "",
-                "utm_content": body.utm_content || "",
-                "ip": body.ip_address || "",
-                "device": body.device || ""
-            }
-        }
+        dataItem: { data }
     };
 
     try {
@@ -75,13 +81,12 @@ export default async function handler(req, res) {
 
         const result = await response.json();
 
-        // 임시 디버그: 모든 응답 반환
-        return res.status(response.ok ? 200 : 500).json({
-            success: response.ok,
-            status: response.status,
-            wix_result: result,
-            sent_data: dataItem
-        });
+        if (response.ok) {
+            return res.status(200).json({ success: true, id: result.dataItem?._id || "saved" });
+        } else {
+            console.error("Wix API Error:", result);
+            return res.status(500).json({ error: result.message || "Wix API 오류" });
+        }
     } catch (error) {
         console.error("Fetch Error:", error);
         return res.status(500).json({ error: "서버 오류" });

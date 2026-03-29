@@ -451,7 +451,19 @@ function submitForm() {
 	})
 	.then(function(r){ return r.json(); })
 	.then(function(result){
-		alert('[DEBUG]\n' + JSON.stringify(result, null, 2));
+		if(result.success){
+			alert('관심고객 등록이 완료되었습니다.\n감사합니다.');
+			document.getElementById('name').value = '';
+			document.getElementById('phone').value = '';
+			document.getElementById('visitDate').value = '';
+			document.getElementById('visitTime').value = '';
+			document.getElementById('resvDisplay').textContent = '날짜와 시간을 선택해 주세요';
+			document.getElementById('resvDisplay').classList.remove('has-value');
+			document.querySelectorAll('input[name="interest"]').forEach(function(c){ c.checked = false; });
+			document.querySelectorAll('input[name="agree"]').forEach(function(c){ c.checked = false; });
+		} else {
+			alert(result.error || '등록에 실패했습니다. 다시 시도해주세요.');
+		}
 	})
 	.catch(function(){ alert('네트워크 오류가 발생했습니다. 다시 시도해주세요.'); })
 	.finally(function(){
