@@ -218,15 +218,17 @@ transition:all 0.5s ease .1s;
 .ssub03p .tab02 li.st03 a,
 .ssub04p .tab02 li.st04 a,
 .ssub05p .tab02 li.st05 a,
+.ssub06p .tab02 li.st06 a,
 .tab02 li.on, .tab02 li.on a {color:#d4a187;}
 .tab02 li.on:before,
 .ssub01p .tab02 li.st01:before,
 .ssub02p .tab02 li.st02:before,
 .ssub03p .tab02 li.st03:before,
 .ssub04p .tab02 li.st04:before,
-.ssub05p .tab02 li.st05:before
+.ssub05p .tab02 li.st05:before,
+.ssub06p .tab02 li.st06:before
 {content:''; width:100%; height:2px; background:#d4a187; position:absolute; left:0; bottom:0;}
-.prp .tab02 li {width:25%;}
+.prp .tab02 li {width:20%;}
 .danp.sub04p .tab02 li {width:33.3%;}
 .salep.sub04p .tab02 li {width:20%;}
 .salep.sub05p .tab02 li {width:20%;}
