@@ -226,7 +226,7 @@ transition:all 0.5s ease .1s;
 .ssub04p .tab02 li.st04:before,
 .ssub05p .tab02 li.st05:before
 {content:''; width:100%; height:2px; background:#d4a187; position:absolute; left:0; bottom:0;}
-.prp .tab02 li {width:20%;}
+.prp .tab02 li {width:25%;}
 .danp.sub04p .tab02 li {width:33.3%;}
 .salep.sub04p .tab02 li {width:20%;}
 .salep.sub05p .tab02 li {width:20%;}
