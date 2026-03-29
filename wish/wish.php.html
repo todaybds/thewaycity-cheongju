@@ -422,7 +422,7 @@ function submitForm() {
 
 	isSubmitting = true;
 	var btn = document.getElementById('submitBtn');
-	btn.disabled = true; btn.innerText = '처리중...'; btn.style.background = '#999'; btn.style.cursor = 'not-allowed';
+	btn.disabled = true; btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed';
 
 	var interest = [];
 	document.querySelectorAll('input[name="interest"]:checked').forEach(function(c){ interest.push(c.value); });
@@ -460,12 +460,12 @@ function submitForm() {
 			document.querySelectorAll('input[name="interest"]').forEach(function(c){ c.checked = false; });
 			document.querySelectorAll('input[name="agree"]').forEach(function(c){ c.checked = false; });
 		} else {
-			alert(result.error || '등록에 실패했습니다. 다시 시도해주세요.');
+			alert(JSON.stringify(result, null, 2));
 		}
 	})
 	.catch(function(){ alert('네트워크 오류가 발생했습니다. 다시 시도해주세요.'); })
 	.finally(function(){
-		btn.disabled = false; btn.innerText = '등록'; btn.style.background = '#fff'; btn.style.cursor = 'pointer';
+		btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
 		isSubmitting = false;
 	});
 }

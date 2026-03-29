@@ -79,7 +79,16 @@ export default async function handler(req, res) {
             return res.status(200).json({ success: true, id: result.dataItem?._id || "saved" });
         } else {
             console.error("Wix API Error:", result);
-            return res.status(500).json({ error: result.message || "Wix API 오류" });
+            return res.status(500).json({
+                error: result.message || "Wix API 오류",
+                debug: {
+                    wix_response: result,
+                    status: response.status,
+                    site_id: WIX_SITE_ID,
+                    collection_id: WIX_COLLECTION_ID,
+                    api_key_prefix: WIX_API_KEY ? WIX_API_KEY.substring(0, 10) + '...' : 'NOT SET'
+                }
+            });
         }
     } catch (error) {
         console.error("Fetch Error:", error);
