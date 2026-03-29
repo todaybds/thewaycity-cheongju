@@ -203,9 +203,8 @@ $(function() {
 .guest-wrap .g-line{width:1px;height:40px;background:#15233d;margin:0 auto 30px}
 .guest-wrap .g-info{background:#f8f5f0;padding:25px 20px;text-align:center;margin-bottom:40px;line-height:1.7;font-size:14px;letter-spacing:-0.03em}
 .guest-wrap .g-info strong{color:#15233d}
-.guest-wrap .g-section{display:flex;justify-content:space-between;align-items:flex-end;font-size:16px;font-weight:600;color:#333;letter-spacing:-0.03em;padding-bottom:12px;margin-bottom:0;border-bottom:2px solid #000}
-.guest-wrap .g-section span{color:#FF0408;font-weight:400}
-.guest-wrap .g-section .req-text{font-size:12px;color:#666;font-weight:400}
+.guest-wrap .g-section{display:flex;justify-content:space-between;align-items:flex-end;font-size:15px;font-weight:600;color:#333;letter-spacing:-0.03em;padding-bottom:12px;margin-bottom:0;border-bottom:1px solid #d4a187}
+.guest-wrap .g-section .req-text{font-size:12px;color:#888;font-weight:400}
 .guest-wrap .form-group{margin-bottom:0}
 .guest-wrap .form-row{display:flex;align-items:stretch}
 .guest-wrap .form-label{width:120px;flex-shrink:0;font-size:14px;font-weight:500;display:flex;align-items:center;padding:18px 0;border-bottom:1px solid #e5e5e5}
@@ -222,12 +221,11 @@ $(function() {
 .guest-wrap .interest-tags label:has(input:checked){border-color:#15233d;background:#15233d;color:#fff}
 .guest-wrap .interest-tags input{display:none}
 .guest-wrap .g-notice{margin:25px 0 40px;font-size:12px;color:#888;line-height:1.6;letter-spacing:-0.03em}
-.guest-wrap .privacy-title{font-size:16px;font-weight:600;color:#666;margin-bottom:12px}
-.guest-wrap .privacy-box{width:100%;height:160px;overflow-y:scroll;border:1px solid #e1e1e1;padding:18px;font-size:12px;line-height:1.6;color:#666;background:#f8f8f8;box-sizing:border-box;margin-bottom:15px}
-.guest-wrap .privacy-box::-webkit-scrollbar{width:8px}
-.guest-wrap .privacy-box::-webkit-scrollbar-track{background:#f1f1f1;border-left:1px solid #e1e1e1}
-.guest-wrap .privacy-box::-webkit-scrollbar-thumb{background:#bbb;border-radius:4px}
-.guest-wrap .consent-wrap{display:flex;gap:20px;justify-content:flex-end;font-size:14px;margin-bottom:40px}
+.guest-wrap .privacy-table{width:100%;border-collapse:collapse;margin-top:0;font-size:13px}
+.guest-wrap .privacy-table th{width:180px;text-align:center;font-weight:500;color:#333;padding:15px 10px;border-bottom:1px solid #e5e5e5;background:#fafafa}
+.guest-wrap .privacy-table td{padding:15px 10px;border-bottom:1px solid #e5e5e5;color:#666;line-height:1.5}
+.guest-wrap .consent-row{display:flex;justify-content:space-between;align-items:center;padding:20px 0;font-size:14px;font-weight:500;margin-bottom:40px}
+.guest-wrap .consent-wrap{display:flex;gap:20px;font-size:14px}
 .guest-wrap .consent-wrap label{display:flex;align-items:center;gap:5px;cursor:pointer}
 .guest-wrap .consent-wrap input[type="radio"]{width:18px;height:18px;accent-color:#000;cursor:pointer;margin:0}
 .guest-wrap .submit-area{text-align:center;margin-bottom:60px}
@@ -242,8 +240,10 @@ $(function() {
 .guest-wrap .form-input input[type="text"],.guest-wrap .form-input input[type="tel"],.guest-wrap .form-input input[type="date"],.guest-wrap .form-input select{font-size:16px}
 .guest-wrap .interest-tags label{font-size:13px;padding:6px 14px}
 .guest-wrap .g-notice{font-size:11px}
-.guest-wrap .g-section{font-size:15px}
-.guest-wrap .privacy-title{font-size:15px}
+.guest-wrap .g-section{font-size:14px}
+.guest-wrap .privacy-table th{width:100px;font-size:12px;padding:10px 8px}
+.guest-wrap .privacy-table td{font-size:12px;padding:10px 8px}
+.guest-wrap .consent-row{flex-direction:column;gap:10px;align-items:flex-start;font-size:13px}
 .guest-wrap .consent-wrap{font-size:13px}
 .guest-wrap .submit-btn{font-size:14px;height:50px;width:180px}
 }
@@ -261,7 +261,7 @@ $(function() {
 	</div>
 
 	<!-- 기본정보 입력 -->
-	<div class="g-section"><span>· 기본정보 입력 <span style="color:#FF0408;">(필수)</span></span><span class="req-text"><span style="color:#e00;">*</span> 표시는 필수 입력 항목입니다.</span></div>
+	<div class="g-section"><span>· 기본정보 입력 (필수)</span><span class="req-text">* 표시는 필수 입력 항목입니다.</span></div>
 
 
 	<div class="form-row">
@@ -318,23 +318,19 @@ $(function() {
 	<!-- 개인정보 수집 및 이용동의 -->
 	<div class="g-section"><span>· 개인정보 수집 및 이용동의</span></div>
 
+	<table class="privacy-table">
+		<tr><th>개인정보의 수집 / 이용항목</th><td>성명, 연락처, 설문내용</td></tr>
+		<tr><th>개인정보의 수집 / 이용목적</th><td>신분평 더웨이시티 제일풍경채 1BL 분양정보에 대한 안내(전화, 문자)</td></tr>
+		<tr><th>개인정보의 보유 및 이용기간</th><td>신분평 더웨이시티 제일풍경채 1BL 분양완료시까지</td></tr>
+		<tr><th>개인정보 동의를 거부할 권리</th><td>귀하께서는 개인정보 수집·이용을 거절하실 수 있으며 거절하실 경우 관심고객 등록이 불가합니다.</td></tr>
+	</table>
 
-	<div class="privacy-box">
-		홈페이지에서 고객들의 원활한 서비스 이용을 위해 필요한 최소한의 범위로 개인정보를 수집합니다.<br><br>
-		<strong>1. 수집하는 개인정보 항목</strong><br>
-		- 수집항목 : 이름, 휴대전화번호, 관심평형, 방문예약 정보<br>
-		- 수집방법 : 홈페이지 관심고객등록을 통한 수집<br><br>
-		<strong>2. 개인정보의 수집 및 이용목적</strong><br>
-		- 신분평 더웨이시티 제일풍경채 1BL 분양정보에 대한 안내(전화, 문자)<br><br>
-		<strong>3. 개인정보의 보유 및 이용기간</strong><br>
-		- 신분평 더웨이시티 제일풍경채 1BL 분양완료시까지<br><br>
-		<strong>4. 개인정보 수집 동의 거부권</strong><br>
-		귀하께서는 개인정보 수집·이용을 거절하실 수 있으며 거절하실 경우 관심고객 등록이 불가합니다.
-	</div>
-
-	<div class="consent-wrap">
-		<label><input type="radio" name="agree" value="동의"> <span>동의</span></label>
-		<label><input type="radio" name="agree" value="거부"> <span>거부</span></label>
+	<div class="consent-row">
+		<span>[필수] 개인정보 수집 및 이용에 동의하십니까? *</span>
+		<div class="consent-wrap">
+			<label><input type="radio" name="agree" value="동의"> <span>동의</span></label>
+			<label><input type="radio" name="agree" value="거부"> <span>거부</span></label>
+		</div>
 	</div>
 
 	<!-- 히든 필드 -->
