@@ -179,18 +179,20 @@ html, body {position:relative; overflow-x:hidden;}
 .mcont05 h2 {top:18%; position:absolute;}
 .mcont05 ol {position:absolute; width:70%; left:15%; top:30%; overflow:hidden;}
 .mcont05 ol li {float:left; width:50%; padding:0 1vw;}
-.mcont06 .arrow {display:none;}
+.mcont06 .arrow {display:block; top:55%; z-index:100; width:3vw; border:none; padding:0.5vw; opacity:0.5;}
+.mcont06 .arrow:hover {opacity:1;}
+.mcont06 .arrow_l {left:18%;}
+.mcont06 .arrow_r {right:18%;}
 .mcont06 {background:url('/ver01/img/mvideo.jpg')#fff no-repeat center top; background-size:cover;}
 .mcont06 dl {position:absolute; top:22%; left:15%; text-align:left;}
 .mcont06 dl dt {margin-bottom:1.5vw;}
 .mcont06 dl dd {font-size:1vw; line-height:1.4vw; color:#15233d;}
-.mcont06 ul {position:absolute; height:50vh; top:40% !important; display:flex; width:100% !important; left:0 !important; padding:0 10vw;}
-.mcont06 ul li {position: relative; opacity:1; width:60%; height:100%; margin:0 1vw;}
-.mcont06 ul li+li {width:20%;}
-.mcont06 ul li iframe {border-radius:2vw; overflow:hidden; background:#111;	cursor:pointer;
-	transition:all 0.5s ease .1s; box-shadow:3px 3px 10px rgba(0, 0, 0, 0.3);
+.mcont06 ul {position:absolute; top:35% !important; width:55% !important; left:22.5% !important; padding:0;}
+.mcont06 ul li {position:relative; opacity:1; width:100%;}
+.mcont06 ul li+li {width:100%;}
+.mcont06 ul li iframe {border-radius:1vw; overflow:hidden; background:#111; cursor:pointer;
+	box-shadow:3px 3px 10px rgba(0, 0, 0, 0.3);
 }
-.mcont06 ul li iframe:hover {transform:scale(1.1);}
 
 /*레이어팝업*/
 .popup {position:fixed; top:10vh; left:0; transform: translateX(calc(-100% + 3vw)); z-index:1100; transition:all 1.0s ease .1s; height:100%;}
@@ -463,18 +465,15 @@ $(document).on('click', '.soon02', function() {
 			</dl>
 			<img src="ver01/img/arrow_r.png" alt="" class="arrow arrow_l"/>
 			<img src="ver01/img/arrow_r.png" alt="" class="arrow arrow_r"/>
-			<ul class="mov_slide cycle-slideshow_bk"
-				data-cycle-swipe="false"
+			<ul class="mov_slide cycle-slideshow"
+				data-cycle-swipe="true"
 				data-cycle-slides=">li"
 				data-cycle-timeout="0"
-				data-cycle-fx="carousel"
-				data-cycle-pager=".pager"
+				data-cycle-fx="fade"
 				data-cycle-prev=".mcont06 .arrow_l"
 				data-cycle-next=".mcont06 .arrow_r"
-				data-cycle-carousel-fluid="false"
 				data-allow-wrap="true"
-				data-cycle-speed="700"
-				data-cycle-easing="easeInOutQuart"
+				data-cycle-speed="500"
 			>
 				<li class="fir">
 					<div style="padding:56.25% 0 0 0;position:relative;"><iframe src="https://www.youtube.com/embed/wArkAKZ12qM" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;" title="홍보영상"></iframe></div>
@@ -486,51 +485,6 @@ $(document).on('click', '.soon02', function() {
 					<div style="padding:56.25% 0 0 0;position:relative;"><iframe src="https://www.youtube.com/embed/vKcyCS5E324" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;" title="유니트 59A"></iframe></div>
 				</li>
 			</ul>
-			<script>
-				$(document).ready(function() {
-				  // 모바일 해상도 조건 (예: 768px 이하)
-				  if (window.innerWidth <= 768) {
-					var $slide = $('.mov_slide');
-					// 클래스 변경
-					$slide.removeClass('cycle-slideshow_bk').addClass('cycle-slideshow');
-					$('.mov_slide').cycle();
-				  }
-				});
-
-			  document.addEventListener("DOMContentLoaded", function () {
-				// 모든 iframe 가져오기
-				const iframes = document.querySelectorAll('iframe');
-				const players = [];
-
-				// 각 iframe을 Vimeo.Player로 만들고 배열에 저장
-				iframes.forEach((iframe) => {
-				  const player = new Vimeo.Player(iframe);
-				  players.push(player);
-
-				  // 각 player에 play 이벤트 리스너 등록
-				  player.on('play', () => {
-					players.forEach((p) => {
-					  if (p !== player) {
-						p.pause(); // 자기 자신 제외하고 모두 정지
-					  }
-					});
-				  });
-				  // cycle 슬라이드 변경 시 모든 영상 정지
-					$('.mcont_wrap.cycle-slideshow').on('cycle-update-view', function(e, opts) {
-					  players.forEach((player) => {
-						player.pause().catch(() => {}); // 재생 중이 아니면 오류 무시
-					  });
-					});
-				// 닫기 버튼 클릭 시 모든 영상 정지
-					$('.btn_close').on('click', function () {
-					  players.forEach((player) => {
-						player.pause().catch(() => {}); // 재생 중이 아니면 오류 무시
-					  });
-					});
-
-				});
-			  });
-			</script>
 		</div>
 		<div class="mcont mcont03">
 			<div class="wbg wbg01"></div>
