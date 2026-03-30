@@ -3,3 +3,5 @@ Thumbs.db
 *.log
 
 .vercel
+.env*.local
+wix_api_key.txt
