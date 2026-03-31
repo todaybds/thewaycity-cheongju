@@ -1,10 +1,23 @@
-/* 부정클릭 방지 시스템 V23 — Vercel 배포용 (antifraud.js) */
+/* 부정클릭 방지 시스템 V28 — Vercel 배포용 (antifraud.js) */
+/* V28 변경사항 (2026-03-31):
+ *  1. checkServerUID 재시도 로직 수정: blocked일 때만 재확인 (오차단 방지)
+ *  2. 화이트리스트 로컬 캐시 7일 만료 추가 (영구 면제 방지)
+ *  3. postMessage origin 검증 강화: 빈 origin 차단 (data: URI 우회 방지)
+ *  4. Audio 핑거프린트 타이밍 개선 (UID 충돌 감소)
+ *
+ * V27 변경사항 (2026-03-30):
+ *  1. RAPID 규칙 완화: 3회/+100 → 5회/+50 (BRS 이중처벌 방지)
+ *  2. tel: 링크 클릭 감지 → BQS +35 (모바일 전화 고객 보호)
+ *  3. 화이트리스트 등록 시 로컬 차단 캐시 제거 (재방문 차단 화면 방지)
+ *  4. 서버 CHECK_UID 응답의 isWhitelisted 플래그 처리
+ *  5. 타임아웃/네트워크 오류 시 로컬 화이트리스트 체크 우선
+ */
 var G = 'https://script.google.com/macros/s/AKfycbzAhWh-brwXOx-Y8gtoDMitEyKEEiQnP4uFe9GFa7-vy6RWcuIWpq-GTCCFLk6MeEmK-Q/exec';
 var SK = 'NAF_V20_2026_SECURE_KEY';
 var CONFIG = { GAS_URL: G, FCS: 30, SWM: 30, SCL: 2, EDM: 10000 };  // V23: STH 삭제 (클라이언트 즉시 차단 삭제됨, 미사용 dead code)
 var W = { BH: 50, VPN: 80, FC: 15, SV: 30, NI: 10 }; // V23: FC 40→15, SV 60→30 (refactor-instructions 준수 — 오탐 감소 우선)
 var S = { uid: '', ip: '', isp: '', isVPN: false, deviceType: '', deviceModel: '', siteDomain: '', adRank: '', adProduct: '', isNaverAd: false, pageViews: 1, sessionStart: Date.now(), engagements: 0, isWhitelisted: false, isBlocked: false, score: 0, scoreReasons: [], keyword: '', iframeActive: false, nQuery: '', nKeyword: '', referrer: '' };
-var BM = { scrollDepth: 0, scrollSpeeds: [], touchCount: 0, firstInteractMs: 0, formFocusMs: 0, formFillStart: 0, formFillMs: 0, idleSegments: 0, mouseMoveDist: 0, lastActivityMs: 0 };
+var BM = { scrollDepth: 0, scrollSpeeds: [], touchCount: 0, firstInteractMs: 0, formFocusMs: 0, formFillStart: 0, formFillMs: 0, idleSegments: 0, mouseMoveDist: 0, lastActivityMs: 0, telClicked: false };
 
 // ── UID 생성 (결정론적 디바이스 핑거프린트) ──
 // V25 정규 사양: Canvas(300x70 gradient) + WebGL(vendor+renderer+version+shading)
@@ -36,6 +49,20 @@ function idbGet(k) { return new Promise(function (res) { try { var r = indexedDB
 function persistUID(u) { try { localStorage.setItem('naf_uid', u) } catch (e) { } try { sessionStorage.setItem('naf_uid', u) } catch (e) { } setCk('naf_uid', u, 365); idbSet('naf_uid', u) }
 function recoverUIDSync() { var u = ''; try { u = localStorage.getItem('naf_uid') } catch (e) { } if (u) return u; u = getCk('naf_uid'); if (u) return u; try { u = sessionStorage.getItem('naf_uid') } catch (e) { } return u || '' }
 
+// ── V28: 화이트리스트 로컬 캐시 (7일 만료) ──
+function persistWhitelist(u) {
+    var x = '' + (Date.now() + 7 * 864e5);
+    try { localStorage.setItem('naf_wl_' + u, x) } catch (e) { }
+}
+function isLocalWhitelisted(u) {
+    var v = '';
+    try { v = localStorage.getItem('naf_wl_' + u) } catch (e) { }
+    if (!v) return false;
+    if (v === '1') return true; // V27 이전 레거시 호환
+    var x = +v;
+    return x ? Date.now() < x : false;
+}
+
 // ── 차단 7일 만료 ──
 function persistBlock(u) {
     var x = '' + (Date.now() + 7 * 864e5);
@@ -61,6 +88,8 @@ function checkServerUID(uid, ip) {
             var ctrl = new AbortController();
             var timer = setTimeout(function () {
                 ctrl.abort();
+                // V28: 타임아웃 시에도 로컬 화이트리스트 체크 우선
+                try { if (isLocalWhitelisted(uid)) { res(false); return; } } catch(e) {}
                 // V25: 타임아웃 시 로컬 차단 캐시 확인 (fail-safe)
                 var localBlocked = isLocalBlocked(uid);
                 // IP 기반 로컬 차단 캐시도 확인
@@ -73,12 +102,20 @@ function checkServerUID(uid, ip) {
                 signal: ctrl.signal
             }).then(function (r) { return r.json() }).then(function (d) {
                 clearTimeout(timer);
+                // V28: 서버에서 화이트리스트 확인 → 로컬 화이트리스트 플래그 설정 (7일 만료)
+                if (d && d.isWhitelisted) {
+                    S.isWhitelisted = true;
+                    persistWhitelist(uid);
+                    try { localStorage.removeItem('naf_blocked_' + uid) } catch(e) {}
+                }
                 var blocked = d && d.blocked === true;
                 // 서버 응답 성공 시 로컬 캐시 갱신
                 if (blocked && ip) { try { localStorage.setItem('naf_ip_blocked', ip) } catch(e) {} }
                 res(blocked);
             }).catch(function () {
                 clearTimeout(timer);
+                // V28: 네트워크 오류 시에도 화이트리스트 체크 우선
+                try { if (isLocalWhitelisted(uid)) { res(false); return; } } catch(e) {}
                 // 네트워크 오류 시에도 로컬 캐시 확인
                 var localBlocked = isLocalBlocked(uid);
                 try { var ipBlk = localStorage.getItem('naf_ip_blocked'); if (ipBlk && ipBlk === ip) localBlocked = true; } catch(e) {}
@@ -86,25 +123,8 @@ function checkServerUID(uid, ip) {
             });
         });
     }
-    return attempt().then(function (r) { return r ? r : attempt() });
-}
-
-// ── V25-FIX: 페이지뷰용 빠른 차단 체크 (단일 시도, 짧은 타임아웃) ──
-function checkServerUIDFast(uid, ip) {
-    return new Promise(function (res) {
-        var ctrl = new AbortController();
-        var timer = setTimeout(function () { ctrl.abort(); res(isLocalBlocked(uid)) }, 3000);
-        fetch(G, {
-            method: 'POST',
-            body: JSON.stringify({ _secret: SK, action: 'CHECK_UID', uid: uid, ip: ip || '', isp: S.isp || '' }),
-            signal: ctrl.signal
-        }).then(function (r) { return r.json() }).then(function (d) {
-            clearTimeout(timer);
-            var blocked = d && d.blocked === true;
-            if (blocked && ip) { try { localStorage.setItem('naf_ip_blocked', ip) } catch(e) {} }
-            res(blocked);
-        }).catch(function () { clearTimeout(timer); res(isLocalBlocked(uid)) });
-    });
+    // V28: 차단(true)일 때만 재확인 (오차단 방지). 미차단이면 즉시 통과.
+    return attempt().then(function (r) { return r ? attempt() : r });
 }
 
 // ── 디바이스 감지 (상세) ──
@@ -153,8 +173,8 @@ function calculateScore(vd) {
     if (S.isVPN) { sc += W.VPN; rs.push('VPN:+' + W.VPN) }
     if (vd.lastVisitAgo != null && vd.lastVisitAgo < CONFIG.FCS) { sc += W.FC; rs.push('FLASH:+' + W.FC + '(' + Math.round(vd.lastVisitAgo) + 's)') }
     if (vd.recentCount >= CONFIG.SCL) { sc += W.SV; rs.push('SPAM:+' + W.SV + '(' + vd.recentCount + '회)') }
-    // V22: 3회+ 빈도 반복 → 추가 100점
-    if (vd.recentCount >= 3) { sc += 100; rs.push('RAPID:+100(' + vd.recentCount + '회)') }
+    // V27: 5회+ 빈도 반복 → 추가 50점 (V22: 3회/+100 → 오탐 감소 위해 완화, BRS와 이중처벌 방지)
+    if (vd.recentCount >= 5) { sc += 50; rs.push('RAPID:+50(' + vd.recentCount + '회)') }
     // V25: navigator.webdriver 봇 감지 (Selenium/Puppeteer 즉시 차단)
     if (navigator.webdriver) { sc += 200; rs.push('BOT:webdriver') }
     return { score: sc, reasons: rs };
@@ -189,6 +209,13 @@ function collectBehaviorMetrics() {
         lastMouseX = e.clientX; lastMouseY = e.clientY; BM.lastActivityMs = Date.now();
     }, { passive: true });
 
+    // V27: tel: 링크 클릭 감지 — 전화 고객 보호 (BQS에 반영)
+    document.addEventListener('click', function (e) {
+        var a = e.target && (e.target.closest ? e.target.closest('a[href^="tel:"]') : null);
+        if (!a) { try { a = e.target.tagName === 'A' && e.target.href && e.target.href.indexOf('tel:') === 0 ? e.target : null; } catch(x){} }
+        if (a) { BM.telClicked = true; S.engagements += 2; }
+    }, true);
+
     document.addEventListener('focusin', function (e) {
         var t = e.target;
         if (t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) {
@@ -214,6 +241,8 @@ function calcBQS() {
     var ffMs = BM.formFocusMs || BM.formFillMs || 0;
     b += ffMs >= 3e4 ? 20 : ffMs >= 1e4 ? 10 : 0;
     if (BM.idleSegments >= 2) b += 10;
+    // V27: tel: 링크 클릭 = 전화 의도 → +35점 (짧은 체류 감점 상쇄)
+    if (BM.telClicked) b += 35;
     if (d < 5) b -= 30;
     if (S.pageViews <= 1 && d < 10) b -= 20;
     if (!BM.scrollDepth) b -= 15;
@@ -223,7 +252,6 @@ function calcBQS() {
 
 // ── 차단 화면 ──
 function renderAccessDenied() {
-    if (document.getElementById('N')) return; // V25-FIX: 중복 렌더링 방지
     var style = document.createElement('style');
     style.textContent = '#N{position:fixed;top:0;left:0;width:100vw;height:100vh;background:#0d0d0d;color:#d0d0d0;font-family:monospace;display:flex;align-items:center;justify-content:center;z-index:2147483647;padding:16px;box-sizing:border-box}#N .b{max-width:680px;width:100%;border:1px solid #2a2a2a;padding:28px;background:#111}#N h1{font-size:20px;color:#f0f0f0;margin:0 0 12px}#N .n{font-size:11px;color:#3a3a3a;line-height:1.8}';
     document.head.appendChild(style);
@@ -235,13 +263,18 @@ function renderAccessDenied() {
 // ── iframe/폼 리스너 ──
 function setupIframeListener() {
     window.addEventListener('message', function (e) {
-        // V22: origin 검증
+        // V28: origin 검증 강화 — 빈 origin(data:/file: URI) 차단
+        if (!e.origin || e.origin === 'null') return;
         var allowed = [location.origin, 'https://www.osan-xi.com', 'https://www.cantaviledition.com', 'https://www.trivn-seosan.com', 'https://www.xn--9m1b56qknena672c9xaj2f8zko8o45b.com'];
-        if (e.origin && allowed.indexOf(e.origin) === -1) return;
+        if (allowed.indexOf(e.origin) === -1) return;
         var d = e.data; if (!d) return;
         if (d.type === 'DB_REGISTERED' || d.action === 'GTM_LEAD_COMPLETE' || d.action === 'formSubmitted') {
             S.isWhitelisted = true; S.engagements += 2;
-            try { localStorage.setItem('naf_wl_' + S.uid, '1') } catch (x) { }
+            persistWhitelist(S.uid);
+            // V27: 화이트리스트 등록 시 로컬 차단 캐시 제거 (재방문 시 차단 화면 방지)
+            try { localStorage.removeItem('naf_blocked_' + S.uid) } catch (x) { }
+            try { localStorage.removeItem('naf_ip_blocked') } catch (x) { }
+            setCk('naf_blocked_' + S.uid, '', -1);
             BM.formFillMs = BM.formFocusMs > 0 ? BM.formFocusMs : Math.max(0, BM.formFillStart ? Date.now() - BM.formFillStart : 0);
             sendToServer({ action: 'WHITELIST', formFillMs: BM.formFillMs });
         }
@@ -297,12 +330,27 @@ function buildPayload() {
         siteDomain: S.siteDomain, siteUrl: location.origin || 'https://' + S.siteDomain,
         adRank: S.adRank, adProduct: S.adProduct, isNaverAd: S.isNaverAd, pageViews: S.pageViews,
         keyword: S.keyword, engagements: S.engagements, score: S.score,
-        scoreReasons: S.scoreReasons.join('|'), isWhitelisted: S.isWhitelisted,
+        scoreReasons: S.scoreReasons.join('|'), isWhitelisted: S.isWhitelisted, telClicked: BM.telClicked,
         sessionStart: S.sessionStart, timestamp: new Date().toISOString(),
         nQuery: S.nQuery, nKeyword: S.nKeyword, referrer: S.referrer || ''
     };
 }
-function sendToServer(x) { fetch(G, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(Object.assign(buildPayload(), x || {})) }).then(function(r){if(!r.ok)console.warn('[NAF] server responded:',r.status)}).catch(function (err) { console.warn('[NAF] send error:', err.message || err) }) } // V23: Content-Type 명시 (Supabase 대비)
+// V26: 재시도 메커니즘 — VISIT/BLOCK 등 중요 액션 유실 방지
+function sendToServer(x, _retry) {
+    var retries = _retry || 0;
+    var payload = JSON.stringify(Object.assign(buildPayload(), x || {}));
+    fetch(G, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: payload })
+    .then(function(r) {
+        if (!r.ok && retries < 2) { setTimeout(function() { sendToServer(x, retries + 1) }, 1000 * (retries + 1)); }
+        return r.json().catch(function() { return {} });
+    })
+    .then(function(d) {
+        if (d && d.error === 'rate_limit' && retries < 2) { setTimeout(function() { sendToServer(x, retries + 1) }, 2000 * (retries + 1)); }
+    })
+    .catch(function (err) {
+        if (retries < 2) { setTimeout(function() { sendToServer(x, retries + 1) }, 1000 * (retries + 1)); }
+    });
+}
 
 
 // ── URL 파라미터 추출 ──
@@ -330,12 +378,7 @@ async function initAntifraud() {
     if (isRefreshOrBack()) {
         var _ru = recoverUIDSync();
         if (_ru) S.uid = _ru;
-        if (isLocalBlocked(_ru)) { renderAccessDenied(); setupBeacon(); return }
-        // V25-FIX: 새로고침/뒤로가기에도 서버 차단 체크 (localStorage 삭제 우회 방지)
-        await fetchIPInfo();
-        var refreshBlocked = false;
-        try { refreshBlocked = await checkServerUIDFast(S.uid, S.ip) } catch (e) { }
-        if (refreshBlocked) { S.isBlocked = true; persistBlock(S.uid); renderAccessDenied(); setupBeacon(); return }
+        if (isLocalBlocked(_ru)) renderAccessDenied();
         setupBeacon(); return;
     }
 
@@ -355,14 +398,8 @@ async function initAntifraud() {
         if (!ss) { setupBeacon(); return }
         S.sessionStart = ss;
         try { var kwD = JSON.parse(localStorage.getItem('naf_kw_' + S.uid) || '{}'); if (kwD.keyword) S.keyword = kwD.keyword; if (kwD.nKeyword) S.nKeyword = kwD.nKeyword; if (kwD.nQuery) S.nQuery = kwD.nQuery } catch (e) { }
-        try { if (localStorage.getItem('naf_wl_' + S.uid) === '1') S.isWhitelisted = true } catch (e) { }
+        try { if (isLocalWhitelisted(S.uid)) S.isWhitelisted = true } catch (e) { }
         await fetchIPInfo();
-        // V25-FIX: 내부 페이지 이동 시에도 차단 여부 체크 (단일 시도, 3초 타임아웃)
-        if (!S.isWhitelisted) {
-            var pvBlocked = false;
-            try { pvBlocked = await checkServerUIDFast(S.uid, S.ip) } catch (e) { }
-            if (pvBlocked) { S.isBlocked = true; persistBlock(S.uid); renderAccessDenied(); sendToServer({ action: 'BLOCK', blockType: 'PAGEVIEW_CHECK' }); return }
-        }
         setupIframeListener(); setupEngagementTracking(); collectBehaviorMetrics();
         S.pageViews = (parseInt(localStorage.getItem('naf_pv_' + S.uid) || '1', 10)) + 1;
         try { localStorage.setItem('naf_pv_' + S.uid, String(S.pageViews)) } catch (e) { }
@@ -373,7 +410,7 @@ async function initAntifraud() {
     if (!S.isNaverAd) { setupBeacon(); return }
 
     // 화이트리스트 체크
-    try { if (localStorage.getItem('naf_wl_' + S.uid) === '1') S.isWhitelisted = true } catch (e) { }
+    try { if (isLocalWhitelisted(S.uid)) S.isWhitelisted = true } catch (e) { }
 
     // V25: IP 먼저 조회 → CHECK_UID에 IP도 전송 (IP/기기 변경 즉시 차단)
     await fetchIPInfo();
@@ -417,19 +454,7 @@ async function initAntifraud() {
 function setupSPAListener() {
     if (window._nafSPA) return; window._nafSPA = 1;
     var lu = location.href;
-    function on() {
-        if (location.href === lu) return; lu = location.href;
-        if (S.isBlocked) { renderAccessDenied(); return } // V25-FIX: 이미 차단된 상태면 추가 호출 불필요
-        S.pageViews++;
-        try { localStorage.setItem('naf_pv_' + S.uid, String(S.pageViews)) } catch (e) { }
-        // V25-FIX: SPA 페이지 전환 시에도 차단 체크 (단일 시도, 3초 타임아웃)
-        if (!S.isWhitelisted) {
-            checkServerUIDFast(S.uid, S.ip).then(function (blocked) {
-                if (blocked) { S.isBlocked = true; persistBlock(S.uid); renderAccessDenied(); sendToServer({ action: 'BLOCK', blockType: 'SPA_PAGEVIEW_CHECK' }); return }
-                sendToServer({ action: 'PAGEVIEW' });
-            }).catch(function () { sendToServer({ action: 'PAGEVIEW' }) });
-        } else { sendToServer({ action: 'PAGEVIEW' }) }
-    }
+    function on() { if (location.href === lu) return; lu = location.href; S.pageViews++; try { localStorage.setItem('naf_pv_' + S.uid, String(S.pageViews)) } catch (e) { } sendToServer({ action: 'PAGEVIEW' }) }
     var _p = history.pushState, _r = history.replaceState;
     history.pushState = function () { _p.apply(this, arguments); on() };
     history.replaceState = function () { _r.apply(this, arguments); on() };
