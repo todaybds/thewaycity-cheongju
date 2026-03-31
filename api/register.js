@@ -58,15 +58,21 @@ export default async function handler(req, res) {
             device: body.device || ""
         };
 
-        const gasPromise = fetch(process.env.GAS_FORM_URL, {
+        const gasRes = await fetch(process.env.GAS_FORM_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(gasPayload),
             redirect: 'follow'
-        }).catch(() => {});
+        });
 
-        res.status(200).json({ success: true, id: "saved" });
-        await gasPromise;
+        let gasResult;
+        try { gasResult = await gasRes.json(); } catch (_) { gasResult = {}; }
+
+        return res.status(200).json({
+            success: true,
+            ...(gasResult.duplicate ? { duplicate: true } : {}),
+            id: "saved"
+        });
 
     } catch (error) {
         console.error("Fetch Error:", error);
