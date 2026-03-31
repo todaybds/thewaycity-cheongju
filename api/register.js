@@ -58,14 +58,26 @@ export default async function handler(req, res) {
             device: body.device || ""
         };
 
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+
         const gasRes = await fetch(process.env.GAS_FORM_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(gasPayload),
-            redirect: 'follow'
+            redirect: 'follow',
+            signal: controller.signal
         });
+        clearTimeout(timeout);
 
-        const gasResult = await gasRes.json();
+        if (!gasRes.ok) {
+            return res.status(502).json({ error: "등록 서버 응답 오류" });
+        }
+
+        let gasResult;
+        try { gasResult = await gasRes.json(); } catch (_) {
+            return res.status(502).json({ error: "등록 서버 응답 파싱 오류" });
+        }
 
         if (gasResult.success) {
             return res.status(200).json({
@@ -79,6 +91,9 @@ export default async function handler(req, res) {
         return res.status(statusCode).json({ error: gasResult.error || "서버 오류" });
 
     } catch (error) {
+        if (error.name === 'AbortError') {
+            return res.status(504).json({ error: "등록 서버 응답 시간 초과. 잠시 후 다시 시도해 주세요." });
+        }
         console.error("Fetch Error:", error);
         return res.status(500).json({ error: "서버 오류" });
     }
