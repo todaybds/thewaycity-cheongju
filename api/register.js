@@ -58,15 +58,15 @@ export default async function handler(req, res) {
             device: body.device || ""
         };
 
-        // GAS에 fire-and-forget (백그라운드 처리)
-        fetch(process.env.GAS_FORM_URL, {
+        const gasPromise = fetch(process.env.GAS_FORM_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(gasPayload),
             redirect: 'follow'
         }).catch(() => {});
 
-        return res.status(200).json({ success: true, id: "saved" });
+        res.status(200).json({ success: true, id: "saved" });
+        await gasPromise;
 
     } catch (error) {
         console.error("Fetch Error:", error);
