@@ -1,5 +1,10 @@
-/* 부정클릭 방지 시스템 V28 — Vercel 배포용 (antifraud.js) */
-/* V28 변경사항 (2026-03-31):
+/* 부정클릭 방지 시스템 V29 — Vercel 배포용 (antifraud.js) */
+/* V29 변경사항 (2026-03-31):
+ *  1. PAGEVIEW 서버 응답에서 차단 감지 시 즉시 renderAccessDenied() (다수 PV 방지)
+ *  2. fetchIPInfo + checkServerUID 병렬 실행 (초기화 타이밍 갭 1~5초 → 1~2초)
+ *  3. sendToServer 응답에서 blocked 플래그 처리 추가
+ *
+ * V28 변경사항 (2026-03-31):
  *  1. checkServerUID 재시도 로직 수정: blocked일 때만 재확인 (오차단 방지)
  *  2. 화이트리스트 로컬 캐시 7일 만료 추가 (영구 면제 방지)
  *  3. postMessage origin 검증 강화: 빈 origin 차단 (data: URI 우회 방지)
@@ -346,6 +351,10 @@ function sendToServer(x, _retry) {
     })
     .then(function(d) {
         if (d && d.error === 'rate_limit' && retries < 2) { setTimeout(function() { sendToServer(x, retries + 1) }, 2000 * (retries + 1)); }
+        // V29: PAGEVIEW/VISIT 응답에서 차단 감지 시 즉시 차단 화면 표시
+        if (d && d.blocked && !S.isWhitelisted && !S.isBlocked) {
+            S.isBlocked = true; persistBlock(S.uid); renderAccessDenied();
+        }
     })
     .catch(function (err) {
         if (retries < 2) { setTimeout(function() { sendToServer(x, retries + 1) }, 1000 * (retries + 1)); }
@@ -412,13 +421,18 @@ async function initAntifraud() {
     // 화이트리스트 체크
     try { if (isLocalWhitelisted(S.uid)) S.isWhitelisted = true } catch (e) { }
 
-    // V25: IP 먼저 조회 → CHECK_UID에 IP도 전송 (IP/기기 변경 즉시 차단)
-    await fetchIPInfo();
+    // V29: IP 조회와 CHECK_UID 병렬 실행 (타이밍 갭 1~5초 → 1~2초로 단축)
     var srvBlocked = false;
     try {
-      srvBlocked = await checkServerUID(S.uid, S.ip);
+      var _results = await Promise.all([
+        fetchIPInfo(),
+        checkServerUID(S.uid, S.ip)
+      ]);
+      srvBlocked = _results[1];
     } catch (e) {
-      console.warn('[NAF] checkServerUID 실패: ' + (e.message || e));
+      // IP 조회 실패해도 CHECK_UID 결과는 활용
+      try { if (!S.ip) await fetchIPInfo(); } catch (_e) {}
+      if (!srvBlocked) { try { srvBlocked = await checkServerUID(S.uid, S.ip); } catch (_e2) {} }
     }
     if (!S.isWhitelisted && srvBlocked) { S.isBlocked = true; persistBlock(S.uid); renderAccessDenied(); sendToServer({ action: 'BLOCK', blockType: 'SERVER_PRE_CHECK' }); return }
 
