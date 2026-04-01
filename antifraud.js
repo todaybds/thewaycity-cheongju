@@ -1,5 +1,15 @@
-/* 부정클릭 방지 시스템 V29 — Vercel 배포용 (antifraud.js) */
-/* V29 변경사항 (2026-03-31):
+/* 부정클릭 방지 시스템 V31 — Vercel 배포용 (antifraud.js) */
+/* V31 변경사항 (2026-04-01): 보안 감사 2차 — CRITICAL/HIGH/MEDIUM 일괄 패치
+ *  1. 클라이언트 시크릿(SK) 제거 — Origin+Timestamp 인증으로 대체
+ *  2. localStorage 차단 캐시 의존도 축소 — 서버 CHECK_UID를 최종 권한으로 사용
+ *  3. DST 타임존 안정화 — getTimezoneOffset() → Intl timeZone 사용
+ *
+ * V30 변경사항 (2026-04-01): 보안 감사 기반 취약점 패치
+ *  1. WHITELIST nonce 검증: VISIT 응답의 1회성 토큰 없이 WHITELIST 호출 불가
+ *  2. sendToServer 응답에서 wl_nonce 추출/저장
+ *  3. S 상태에 wlNonce 필드 추가
+ *
+ * V29 변경사항 (2026-03-31):
  *  1. PAGEVIEW 서버 응답에서 차단 감지 시 즉시 renderAccessDenied() (다수 PV 방지)
  *  2. fetchIPInfo + checkServerUID 병렬 실행 (초기화 타이밍 갭 1~5초 → 1~2초)
  *  3. sendToServer 응답에서 blocked 플래그 처리 추가
@@ -17,11 +27,11 @@
  *  4. 서버 CHECK_UID 응답의 isWhitelisted 플래그 처리
  *  5. 타임아웃/네트워크 오류 시 로컬 화이트리스트 체크 우선
  */
-var G = 'https://script.google.com/macros/s/AKfycbzAhWh-brwXOx-Y8gtoDMitEyKEEiQnP4uFe9GFa7-vy6RWcuIWpq-GTCCFLk6MeEmK-Q/exec';
-var SK = 'NAF_V20_2026_SECURE_KEY';
+var G = 'https://script.google.com/macros/s/AKfycbwEENIblM0NCX7uQn-zVOY1IcwNj7aboQw98ZVWJ1dmrwDIs3S4QgF2Gv3smBhaIQxmqQ/exec';
+// V31: 클라이언트 시크릿 제거 — 서버는 Origin+Timestamp로 인증 (소스 노출 무력화)
 var CONFIG = { GAS_URL: G, FCS: 30, SWM: 30, SCL: 2, EDM: 10000 };  // V23: STH 삭제 (클라이언트 즉시 차단 삭제됨, 미사용 dead code)
 var W = { BH: 50, VPN: 80, FC: 15, SV: 30, NI: 10 }; // V23: FC 40→15, SV 60→30 (refactor-instructions 준수 — 오탐 감소 우선)
-var S = { uid: '', ip: '', isp: '', isVPN: false, deviceType: '', deviceModel: '', siteDomain: '', adRank: '', adProduct: '', isNaverAd: false, pageViews: 1, sessionStart: Date.now(), engagements: 0, isWhitelisted: false, isBlocked: false, score: 0, scoreReasons: [], keyword: '', iframeActive: false, nQuery: '', nKeyword: '', referrer: '' };
+var S = { uid: '', ip: '', isp: '', isVPN: false, deviceType: '', deviceModel: '', siteDomain: '', adRank: '', adProduct: '', isNaverAd: false, pageViews: 1, sessionStart: Date.now(), engagements: 0, isWhitelisted: false, isBlocked: false, score: 0, scoreReasons: [], keyword: '', iframeActive: false, nQuery: '', nKeyword: '', referrer: '', wlNonce: '' };
 var BM = { scrollDepth: 0, scrollSpeeds: [], touchCount: 0, firstInteractMs: 0, formFocusMs: 0, formFillStart: 0, formFillMs: 0, idleSegments: 0, mouseMoveDist: 0, lastActivityMs: 0, telClicked: false };
 
 // ── UID 생성 (결정론적 디바이스 핑거프린트) ──
@@ -38,7 +48,9 @@ async function generateUID() {
     try { var c = document.createElement('canvas'); c.width = 300; c.height = 70; var x = c.getContext('2d'); var g = x.createLinearGradient(0, 0, 300, 70); g.addColorStop(0, '#f0f'); g.addColorStop(1, '#0ff'); x.fillStyle = g; x.fillRect(0, 0, 300, 70); x.fillStyle = 'rgba(0,32,128,.85)'; x.font = 'bold 20px Arial'; x.fillText('DeviceIntegrity', 4, 30); x.font = '12px Georgia'; x.fillText('AntiFraud20', 150, 55); s.push('cv:' + c.toDataURL()) } catch (e) { s.push('cv:e') }
     try { var gl = document.createElement('canvas').getContext('webgl'); if (gl) { var e2 = gl.getExtension('WEBGL_debug_renderer_info'); if (e2) { s.push(gl.getParameter(e2.UNMASKED_VENDOR_WEBGL)); s.push(gl.getParameter(e2.UNMASKED_RENDERER_WEBGL)) } s.push(gl.getParameter(gl.VERSION)); s.push(gl.getParameter(gl.SHADING_LANGUAGE_VERSION)); } } catch (e) { s.push('wgl:e') }
     var a2; try { var A = window.AudioContext || window.webkitAudioContext; a2 = new A(); var o = a2.createOscillator(), n = a2.createAnalyser(), g2 = a2.createGain(); g2.gain.value = 0; o.connect(n); n.connect(g2); g2.connect(a2.destination); o.type = 'sawtooth'; o.start(0); var b = new Float32Array(n.frequencyBinCount); n.getFloatFrequencyData(b); o.stop(); s.push('au:' + Array.from(b.slice(0, 8)).map(function (v) { return v.toFixed(1) }).join(',')) } catch (e) { s.push('au:e') } finally { if (a2) { try { a2.close(); } catch (e2) { } } }
-    s.push(navigator.hardwareConcurrency || 0, navigator.deviceMemory || 0, screen.width + 'x' + screen.height + 'x' + (screen.colorDepth || 0), screen.availWidth + 'x' + screen.availHeight, new Date().getTimezoneOffset(), navigator.platform || '', navigator.language || '', navigator.maxTouchPoints || 0, navigator.languages ? navigator.languages.join(',') : '');
+    // V31: DST 안정화 — getTimezoneOffset()은 DST 전환 시 변경되므로 IANA 타임존명 사용
+    var tzName = ''; try { tzName = Intl.DateTimeFormat().resolvedOptions().timeZone || '' } catch(e) { tzName = '' + (new Date().getTimezoneOffset()) }
+    s.push(navigator.hardwareConcurrency || 0, navigator.deviceMemory || 0, screen.width + 'x' + screen.height + 'x' + (screen.colorDepth || 0), screen.availWidth + 'x' + screen.availHeight, tzName, navigator.platform || '', navigator.language || '', navigator.maxTouchPoints || 0, navigator.languages ? navigator.languages.join(',') : '');
     var h = await sha256hex(s.join('|'));
     uid = 'DEV_' + h.substring(0, 24).toUpperCase();
     persistUID(uid);
@@ -95,15 +107,14 @@ function checkServerUID(uid, ip) {
                 ctrl.abort();
                 // V28: 타임아웃 시에도 로컬 화이트리스트 체크 우선
                 try { if (isLocalWhitelisted(uid)) { res(false); return; } } catch(e) {}
-                // V25: 타임아웃 시 로컬 차단 캐시 확인 (fail-safe)
+                // V31: 타임아웃 시 로컬 차단 캐시는 UX 힌트로만 사용 (서버 확인이 최종 권한)
+                // UID 기반만 확인 — IP 기반 로컬 차단은 스푸핑 가능하므로 제거
                 var localBlocked = isLocalBlocked(uid);
-                // IP 기반 로컬 차단 캐시도 확인
-                try { var ipBlk = localStorage.getItem('naf_ip_blocked'); if (ipBlk && ipBlk === ip) localBlocked = true; } catch(e) {}
                 res(localBlocked);
             }, 5000);
             fetch(G, {
                 method: 'POST',
-                body: JSON.stringify({ _secret: SK, action: 'CHECK_UID', uid: uid, ip: ip || '', isp: S.isp || '' }),
+                body: JSON.stringify({ action: 'CHECK_UID', uid: uid, ip: ip || '', isp: S.isp || '', timestamp: new Date().toISOString() }),
                 signal: ctrl.signal
             }).then(function (r) { return r.json() }).then(function (d) {
                 clearTimeout(timer);
@@ -114,16 +125,14 @@ function checkServerUID(uid, ip) {
                     try { localStorage.removeItem('naf_blocked_' + uid) } catch(e) {}
                 }
                 var blocked = d && d.blocked === true;
-                // 서버 응답 성공 시 로컬 캐시 갱신
-                if (blocked && ip) { try { localStorage.setItem('naf_ip_blocked', ip) } catch(e) {} }
+                // V31: IP 기반 로컬 캐시 제거 (스푸핑 방지) — UID 기반 캐시만 유지
                 res(blocked);
             }).catch(function () {
                 clearTimeout(timer);
                 // V28: 네트워크 오류 시에도 화이트리스트 체크 우선
                 try { if (isLocalWhitelisted(uid)) { res(false); return; } } catch(e) {}
-                // 네트워크 오류 시에도 로컬 캐시 확인
+                // V31: IP 기반 로컬 차단 제거 — UID 기반만 유지
                 var localBlocked = isLocalBlocked(uid);
-                try { var ipBlk = localStorage.getItem('naf_ip_blocked'); if (ipBlk && ipBlk === ip) localBlocked = true; } catch(e) {}
                 res(localBlocked);
             });
         });
@@ -153,7 +162,7 @@ function detectDevice() {
 // ── IP 조회 ──
 async function fetchIPInfo() {
     var ck = 'naf_ipc';
-    try { var cc = JSON.parse(localStorage.getItem(ck)); if (cc && Date.now() - cc.t < 18e5) { S.ip = cc.i; S.isp = cc.s; S.isVPN = cc.v; return } } catch (e) { }  // V23: 5분→30분 캐시 (외부 API 호출 절감)
+    try { var cc = JSON.parse(localStorage.getItem(ck)); if (cc && Date.now() - cc.t < 6e5) { S.ip = cc.i; S.isp = cc.s; S.isVPN = cc.v; return } } catch (e) { }  // V32: 30분→10분 캐시 (WiFi→4G 전환 시 IP 변경 반영)
     var v4 = /^(\d{1,3}\.){3}\d{1,3}$/;
     var ps = [
         async () => { var d = await fetch('https://api4.ipify.org?format=json', { cache: 'no-cache' }).then(r => r.json()); if (!v4.test(d.ip)) throw 0; return { ip: d.ip, isp: '' } },
@@ -274,6 +283,8 @@ function setupIframeListener() {
         if (allowed.indexOf(e.origin) === -1) return;
         var d = e.data; if (!d) return;
         if (d.type === 'DB_REGISTERED' || d.action === 'GTM_LEAD_COMPLETE' || d.action === 'formSubmitted') {
+            // V32: nonce 없으면 WHITELIST 전송 보류 (서버에서도 거부하지만 불필요한 요청 방지)
+            if (!S.wlNonce) return;
             S.isWhitelisted = true; S.engagements += 2;
             persistWhitelist(S.uid);
             // V27: 화이트리스트 등록 시 로컬 차단 캐시 제거 (재방문 시 차단 화면 방지)
@@ -281,7 +292,7 @@ function setupIframeListener() {
             try { localStorage.removeItem('naf_ip_blocked') } catch (x) { }
             setCk('naf_blocked_' + S.uid, '', -1);
             BM.formFillMs = BM.formFocusMs > 0 ? BM.formFocusMs : Math.max(0, BM.formFillStart ? Date.now() - BM.formFillStart : 0);
-            sendToServer({ action: 'WHITELIST', formFillMs: BM.formFillMs });
+            sendToServer({ action: 'WHITELIST', formFillMs: BM.formFillMs, wl_nonce: S.wlNonce });
         }
         if (d.type === 'ENGAGEMENT') S.engagements++;
     });
@@ -328,10 +339,10 @@ function setupBeacon() {
     });
 }
 
-// ── 페이로드 (시크릿 포함) ──
+// ── 페이로드 (V31: 시크릿 제거 — 서버에서 Origin+Timestamp 인증) ──
 function buildPayload() {
     return {
-        _secret: SK, uid: S.uid, ip: S.ip, isp: S.isp, deviceType: S.deviceType, deviceModel: S.deviceModel,
+        uid: S.uid, ip: S.ip, isp: S.isp, deviceType: S.deviceType, deviceModel: S.deviceModel,
         siteDomain: S.siteDomain, siteUrl: location.origin || 'https://' + S.siteDomain,
         adRank: S.adRank, adProduct: S.adProduct, isNaverAd: S.isNaverAd, pageViews: S.pageViews,
         keyword: S.keyword, engagements: S.engagements, score: S.score,
@@ -351,6 +362,8 @@ function sendToServer(x, _retry) {
     })
     .then(function(d) {
         if (d && d.error === 'rate_limit' && retries < 2) { setTimeout(function() { sendToServer(x, retries + 1) }, 2000 * (retries + 1)); }
+        // V30: VISIT 응답에서 wl_nonce 추출 (WHITELIST 검증용)
+        if (d && d.wl_nonce) { S.wlNonce = d.wl_nonce; }
         // V29: PAGEVIEW/VISIT 응답에서 차단 감지 시 즉시 차단 화면 표시
         if (d && d.blocked && !S.isWhitelisted && !S.isBlocked) {
             S.isBlocked = true; persistBlock(S.uid); renderAccessDenied();
@@ -421,19 +434,14 @@ async function initAntifraud() {
     // 화이트리스트 체크
     try { if (isLocalWhitelisted(S.uid)) S.isWhitelisted = true } catch (e) { }
 
-    // V29: IP 조회와 CHECK_UID 병렬 실행 (타이밍 갭 1~5초 → 1~2초로 단축)
+    // V32: IP 먼저 조회 후 CHECK_UID (V29 병렬 실행 시 IP 빈 상태 전송 버그 수정)
     var srvBlocked = false;
     try {
-      var _results = await Promise.all([
-        fetchIPInfo(),
-        checkServerUID(S.uid, S.ip)
-      ]);
-      srvBlocked = _results[1];
-    } catch (e) {
-      // IP 조회 실패해도 CHECK_UID 결과는 활용
-      try { if (!S.ip) await fetchIPInfo(); } catch (_e) {}
-      if (!srvBlocked) { try { srvBlocked = await checkServerUID(S.uid, S.ip); } catch (_e2) {} }
-    }
+      await fetchIPInfo();
+    } catch (e) {}
+    try {
+      srvBlocked = await checkServerUID(S.uid, S.ip);
+    } catch (e) {}
     if (!S.isWhitelisted && srvBlocked) { S.isBlocked = true; persistBlock(S.uid); renderAccessDenied(); sendToServer({ action: 'BLOCK', blockType: 'SERVER_PRE_CHECK' }); return }
 
     setupIframeListener(); setupEngagementTracking(); collectBehaviorMetrics();
