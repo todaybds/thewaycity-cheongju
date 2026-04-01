@@ -444,6 +444,7 @@ function submitForm() {
 	var vTime = document.getElementById('visitTime').value;
 	if(vDate && !vTime){ if(!confirm('방문 시간을 선택하지 않으셨습니다. 예약 없이 등록하시겠습니까?')){ openModal(); return; } vDate=''; }
 
+	// 전송 시작 (alert 전에 HTTP 요청 발사)
 	fetch('/api/register', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
@@ -460,24 +461,31 @@ function submitForm() {
 			ip_address: document.getElementById('ip_address').value,
 			device: document.getElementById('device').value
 		})
-	})
-	.then(function(r){ return r.json(); })
-	.then(function(result){
-		if(result.success){
-			var wrap = document.querySelector('.guest-wrap');
-			var formEls = wrap.querySelectorAll('.g-info, .g-section, .form-row, .g-notice, .privacy-table, .consent-row, #submitArea, #reservationModal, input[type="hidden"]');
-			formEls.forEach(function(el){ el.style.display = 'none'; });
-			document.getElementById('successMsg').style.display = 'block';
-			window.scrollTo({top: wrap.offsetTop - 20, behavior: 'smooth'});
-		} else {
-			alert(result.error || '등록에 실패했습니다. 다시 시도해주세요.');
+	}).then(function(response) {
+		if (!response.ok) {
+			alert("등록 중 오류가 발생했습니다. 다시 시도해주세요.");
+			btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+			isSubmitting = false;
 		}
-	})
-	.catch(function(){ alert('네트워크 오류가 발생했습니다. 다시 시도해주세요.'); })
-	.finally(function(){
+	}).catch(function() {
+		alert("서버와 통신 중 오류가 발생했습니다. 다시 시도해주세요.");
 		btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
 		isSubmitting = false;
 	});
+
+	// 즉시 상태 리셋
+	btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+	isSubmitting = false;
+
+	// 즉시 완료 알림
+	alert('관심고객 등록이 완료되었습니다.');
+	try {
+		document.getElementById('name').value = '';
+		document.getElementById('phone').value = '';
+		document.querySelectorAll('input[name="interest"]:checked').forEach(function(c){ c.checked = false; });
+		document.getElementById('visitDate').value = '';
+		document.getElementById('visitTime').value = '';
+	} catch(e) {}
 }
 
 // 모달 열기/닫기

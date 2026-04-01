@@ -1,7 +1,9 @@
 .DS_Store
 Thumbs.db
 *.log
+*.txt
 
 .vercel
-.env*.local
+.env*
+.env.local
 wix_api_key.txt
