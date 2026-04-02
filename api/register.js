@@ -1,3 +1,4 @@
+import { waitUntil } from '@vercel/functions';
 import { GoogleAuth } from 'google-auth-library';
 import nodemailer from 'nodemailer';
 
@@ -75,6 +76,34 @@ function formatTimeKorean(t) {
   return min === "00" ? `${period} ${h}시` : `${period} ${h}시 ${min}분`;
 }
 
+async function insertToSupabase(data) {
+  const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/registrations`, {
+    method: 'POST',
+    headers: {
+      'apikey': process.env.SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(`Supabase ${res.status}: ${await res.text()}`);
+  const [row] = await res.json();
+  return row.id;
+}
+
+async function updateSyncStatus(id, updates) {
+  await fetch(`${process.env.SUPABASE_URL}/rest/v1/registrations?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': process.env.SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(updates)
+  });
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://www.xn--9m1b56qknena672c9xaj2f8zko8o45b.com');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -121,7 +150,28 @@ export default async function handler(req, res) {
       device: body.device || ""
     };
 
-    // 청주: A날짜 B경로 C고객명 D전화번호 E방문예약 F예약시간 G~L빈칸 M~Q:UTM R:IP S:기기
+    // 1. Supabase에 즉시 저장 (빠름 ~100-200ms)
+    const regId = await insertToSupabase({
+      site_domain: 'cheongju-theway.com',
+      reg_datetime: formattedDate,
+      name: payload.name,
+      phone: payload.phone,
+      visit_date: payload.date,
+      visit_time: payload.time,
+      interest: payload.interest,
+      utm_source: payload.utm_source,
+      utm_medium: payload.utm_medium,
+      utm_campaign: payload.utm_campaign,
+      utm_term: payload.utm_term,
+      utm_content: payload.utm_content,
+      ip_address: payload.ip_address,
+      device: payload.device
+    });
+
+    // 2. 즉시 응답
+    res.status(200).json({ success: true, id: regId });
+
+    // 3. 백그라운드에서 Sheets + 이메일 처리
     const row = [
       formattedDate, "관심고객", payload.name, payload.phone,
       payload.date, payload.time,
@@ -131,12 +181,24 @@ export default async function handler(req, res) {
       payload.ip_address, payload.device
     ];
 
-    await Promise.all([
-      appendToSheet(row),
-      sendEmail(payload).catch(err => console.error('Email failed:', err.message))
-    ]);
+    waitUntil(
+      (async () => {
+        let sheetOk = false, emailOk = false;
+        const errors = [];
 
-    return res.status(200).json({ success: true, id: "saved" });
+        try { await appendToSheet(row); sheetOk = true; }
+        catch (e) { errors.push('sheets: ' + e.message); }
+
+        try { await sendEmail(payload); emailOk = true; }
+        catch (e) { errors.push('email: ' + e.message); }
+
+        await updateSyncStatus(regId, {
+          sheets_synced: sheetOk,
+          email_sent: emailOk,
+          sync_error: errors.length ? errors.join(' | ') : null
+        }).catch(() => {});
+      })()
+    );
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ error: "서버 오류" });
