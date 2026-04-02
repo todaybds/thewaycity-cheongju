@@ -1,5 +1,10 @@
-/* 부정클릭 방지 시스템 V31 — Vercel 배포용 (antifraud.js) */
-/* V31 변경사항 (2026-04-01): 보안 감사 2차 — CRITICAL/HIGH/MEDIUM 일괄 패치
+/* 부정클릭 방지 시스템 V32 — Vercel 배포용 (antifraud.js) */
+/* V32 변경사항 (2026-04-02): Nonce 타임아웃 클라이언트 검증
+ *  1. S.wlNonceTime 추가 — nonce 발급 시각 기록
+ *  2. WHITELIST 전송 전 nonce 경과 시간 체크 (25분 초과 시 VISIT 재호출로 갱신)
+ *  3. 서버 30분 TTL에 5분 여유를 두어 nonce 만료로 인한 WHITELIST 실패 방지
+ *
+ * V31 변경사항 (2026-04-01): 보안 감사 2차 — CRITICAL/HIGH/MEDIUM 일괄 패치
  *  1. 클라이언트 시크릿(SK) 제거 — Origin+Timestamp 인증으로 대체
  *  2. localStorage 차단 캐시 의존도 축소 — 서버 CHECK_UID를 최종 권한으로 사용
  *  3. DST 타임존 안정화 — getTimezoneOffset() → Intl timeZone 사용
@@ -31,7 +36,7 @@ var G = 'https://script.google.com/macros/s/AKfycbwEENIblM0NCX7uQn-zVOY1IcwNj7ab
 // V31: 클라이언트 시크릿 제거 — 서버는 Origin+Timestamp로 인증 (소스 노출 무력화)
 var CONFIG = { GAS_URL: G, FCS: 30, SWM: 30, SCL: 2, EDM: 10000 };  // V23: STH 삭제 (클라이언트 즉시 차단 삭제됨, 미사용 dead code)
 var W = { BH: 50, VPN: 80, FC: 15, SV: 30, NI: 10 }; // V23: FC 40→15, SV 60→30 (refactor-instructions 준수 — 오탐 감소 우선)
-var S = { uid: '', ip: '', isp: '', isVPN: false, deviceType: '', deviceModel: '', siteDomain: '', adRank: '', adProduct: '', isNaverAd: false, pageViews: 1, sessionStart: Date.now(), engagements: 0, isWhitelisted: false, isBlocked: false, score: 0, scoreReasons: [], keyword: '', iframeActive: false, nQuery: '', nKeyword: '', referrer: '', wlNonce: '' };
+var S = { uid: '', ip: '', isp: '', isVPN: false, deviceType: '', deviceModel: '', siteDomain: '', adRank: '', adProduct: '', isNaverAd: false, pageViews: 1, sessionStart: Date.now(), engagements: 0, isWhitelisted: false, isBlocked: false, score: 0, scoreReasons: [], keyword: '', iframeActive: false, nQuery: '', nKeyword: '', referrer: '', wlNonce: '', wlNonceTime: 0 };
 var BM = { scrollDepth: 0, scrollSpeeds: [], touchCount: 0, firstInteractMs: 0, formFocusMs: 0, formFillStart: 0, formFillMs: 0, idleSegments: 0, mouseMoveDist: 0, lastActivityMs: 0, telClicked: false };
 
 // ── UID 생성 (결정론적 디바이스 핑거프린트) ──
@@ -292,7 +297,23 @@ function setupIframeListener() {
             try { localStorage.removeItem('naf_ip_blocked') } catch (x) { }
             setCk('naf_blocked_' + S.uid, '', -1);
             BM.formFillMs = BM.formFocusMs > 0 ? BM.formFocusMs : Math.max(0, BM.formFillStart ? Date.now() - BM.formFillStart : 0);
-            sendToServer({ action: 'WHITELIST', formFillMs: BM.formFillMs, wl_nonce: S.wlNonce });
+            // V32: nonce 25분(1500000ms) 경과 시 VISIT 재호출로 갱신 후 WHITELIST 전송
+            //      서버 TTL 30분에 5분 여유 확보 → nonce 만료로 인한 WHITELIST 실패 방지
+            if (S.wlNonceTime && Date.now() - S.wlNonceTime > 1500000) {
+                var _wlPayload = JSON.stringify(Object.assign(buildPayload(), { action: 'VISIT' }));
+                fetch(G, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: _wlPayload })
+                .then(function(r) { return r.json().catch(function() { return {} }) })
+                .then(function(rd) {
+                    if (rd && rd.wl_nonce) { S.wlNonce = rd.wl_nonce; S.wlNonceTime = Date.now(); }
+                    sendToServer({ action: 'WHITELIST', formFillMs: BM.formFillMs, wl_nonce: S.wlNonce });
+                })
+                .catch(function() {
+                    // 갱신 실패 시 기존 nonce로 시도 (서버에서 거부될 수 있음)
+                    sendToServer({ action: 'WHITELIST', formFillMs: BM.formFillMs, wl_nonce: S.wlNonce });
+                });
+            } else {
+                sendToServer({ action: 'WHITELIST', formFillMs: BM.formFillMs, wl_nonce: S.wlNonce });
+            }
         }
         if (d.type === 'ENGAGEMENT') S.engagements++;
     });
@@ -363,7 +384,7 @@ function sendToServer(x, _retry) {
     .then(function(d) {
         if (d && d.error === 'rate_limit' && retries < 2) { setTimeout(function() { sendToServer(x, retries + 1) }, 2000 * (retries + 1)); }
         // V30: VISIT 응답에서 wl_nonce 추출 (WHITELIST 검증용)
-        if (d && d.wl_nonce) { S.wlNonce = d.wl_nonce; }
+        if (d && d.wl_nonce) { S.wlNonce = d.wl_nonce; S.wlNonceTime = Date.now(); }
         // V29: PAGEVIEW/VISIT 응답에서 차단 감지 시 즉시 차단 화면 표시
         if (d && d.blocked && !S.isWhitelisted && !S.isBlocked) {
             S.isBlocked = true; persistBlock(S.uid); renderAccessDenied();
