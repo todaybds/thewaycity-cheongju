@@ -217,28 +217,31 @@ $(function() {
 .guest-wrap .form-row:focus-within .form-input{border-bottom-color:#d4a187}
 .guest-wrap .form-input input::placeholder{color:#aaa}
 .guest-wrap .form-input select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right center;background-size:18px;padding-right:25px;cursor:pointer}
-.resv-trigger{display:flex;align-items:center;cursor:pointer;width:100%;max-width:350px}
+.resv-trigger{display:flex;align-items:center;gap:8px;cursor:pointer;width:100%;max-width:350px}
+.resv-icon{flex-shrink:0}
+.resv-clear-btn{background:none;border:none;color:#999;font-size:16px;cursor:pointer;padding:4px 0 4px 8px;flex-shrink:0}
+.resv-clear-btn:hover{color:#333}
 .resv-trigger-text{font-size:15px;color:#aaa}
 .resv-trigger-text.has-value{color:#333;font-weight:500}
-.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:99999;justify-content:center;align-items:flex-end;padding:0;box-sizing:border-box}
-.modal-content-box{background:#fff;width:100%;max-width:480px;border-radius:16px 16px 0 0;overflow:hidden;box-shadow:0 -4px 40px rgba(0,0,0,0.15);display:flex;flex-direction:column;max-height:85vh;margin:0 auto}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:99999;justify-content:center;align-items:center;padding:0;box-sizing:border-box}
+.modal-content-box{background:#fff;width:100%;max-width:480px;border-radius:16px;overflow:hidden;box-shadow:0 -4px 40px rgba(0,0,0,0.15);display:flex;flex-direction:column;max-height:95vh;margin:0 auto}
 .modal-header{height:52px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:#fff;flex-shrink:0}
 .modal-title{font-size:16px;font-weight:600;color:#111;font-family:'Noto Sans KR',sans-serif}
 .modal-close-btn{font-size:20px;color:#333;cursor:pointer;background:none;border:none;font-weight:300;padding:0}
 .modal-body{padding:0;display:flex;flex-direction:column;overflow-y:auto}
-.calendar-area{padding:16px 0 8px;display:flex;justify-content:center}
+.calendar-area{padding:8px 0 0;display:flex;justify-content:center}
 .flatpickr-calendar{box-shadow:none!important;background:transparent!important}
 .flatpickr-day.selected,.flatpickr-day.startRange,.flatpickr-day.endRange{background:#d4a187!important;border-color:#d4a187!important}
 .flatpickr-day.today:not(.selected){border-color:#d0cbc4!important}
-.time-area{padding:0 20px 20px}
+.time-area{padding:0 20px 12px}
 .time-date-label{display:block;font-size:14px;font-weight:600;color:#111;padding:12px 0 4px;border-top:1px solid #f0f0f0;font-family:'Noto Sans KR',sans-serif}
-.time-slot-section{margin-top:12px}
+.time-slot-section{margin-top:8px}
 .time-slot-title{font-size:13px;font-weight:600;color:#555;margin-bottom:8px;font-family:'Noto Sans KR',sans-serif}
-.time-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%}
-.time-btn{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:9px 0;font-size:13px;color:#333;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans KR',sans-serif;text-align:center}
+.time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%}
+.time-btn{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:7px 0;font-size:13px;color:#333;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans KR',sans-serif;text-align:center}
 .time-btn:hover{border-color:#d4a187;color:#d4a187}
 .time-btn.active{background:#d4a187;color:#fff;border-color:#d4a187;font-weight:600}
-.msg-box{text-align:center;color:#999;padding:40px 0}
+.msg-box{text-align:center;color:#999;padding:20px 0}
 .msg-text{font-size:14px;color:#999}
 @media(max-width:768px){.modal-content-box{max-width:100%}}
 .guest-wrap .interest-tags{display:flex;gap:8px;flex-wrap:wrap}
@@ -261,6 +264,9 @@ $(function() {
 .guest-wrap .success-msg .success-icon svg{width:32px;height:32px}
 .guest-wrap .success-msg h3{font-size:22px;font-weight:700;color:#15233d;margin:0 0 12px}
 .guest-wrap .success-msg p{font-size:15px;color:#888;line-height:1.6;margin:0}
+.guest-wrap .form-input.error{border-bottom:2px solid #FF4040}
+.guest-wrap .form-input.error input::placeholder{color:#FF4040}
+.guest-wrap .consent-row.error{color:#FF4040}
 .guest-wrap .submit-btn{width:100%;max-width:400px;height:60px;background:#15233d;border:none;color:#fff;font-size:17px;font-weight:600;cursor:pointer;transition:all 0.3s;-webkit-appearance:none;appearance:none;border-radius:6px;font-family:'Noto Sans KR',sans-serif;letter-spacing:0.03em}
 .guest-wrap .submit-btn:hover{background:#1e3258}
 @media(max-width:768px){
@@ -323,13 +329,15 @@ $(function() {
 		<div class="form-label">방문예약</div>
 		<div class="form-input">
 			<div class="resv-trigger" onclick="openModal()">
+				<svg class="resv-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
 				<span class="resv-trigger-text" id="resvDisplay">날짜와 시간을 선택해 주세요</span>
+				<button type="button" class="resv-clear-btn" id="resvClearBtn" onclick="event.stopPropagation();clearReservation()" style="display:none">✕</button>
 			</div>
 		</div>
 	</div>
 
 	<!-- 날짜+시간 통합 모달 -->
-	<div id="reservationModal" class="modal-overlay">
+	<div id="reservationModal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
 		<div class="modal-content-box">
 			<div class="modal-header">
 				<span class="modal-title">날짜와 시간을 선택해 주세요</span>
@@ -367,7 +375,7 @@ $(function() {
 	<div class="consent-row">
 		<span>[필수] 개인정보 수집 및 이용에 동의하십니까? *</span>
 		<div class="consent-wrap">
-			<label><input type="radio" name="agree" value="동의"> <span>동의</span></label>
+			<label><input type="radio" name="agree" value="동의" checked> <span>동의</span></label>
 			<label><input type="radio" name="agree" value="거부"> <span>거부</span></label>
 		</div>
 	</div>
@@ -403,6 +411,11 @@ $(function() {
 	document.getElementById('device').value = ss.getItem('device_type') || '';
 })();
 
+// 입력 시 에러 표시 제거
+document.getElementById('name').addEventListener('input', function(){ this.closest('.form-input').classList.remove('error'); });
+document.getElementById('phone').addEventListener('input', function(){ this.closest('.form-input').classList.remove('error'); });
+document.querySelectorAll('input[name="agree"]').forEach(function(r){ r.addEventListener('change', function(){ document.querySelector('.consent-row').classList.remove('error'); }); });
+
 // 전화번호: 010- 고정, 자동 하이픈
 document.getElementById('phone').addEventListener('focus', function() {
 	if(this.value === '') this.value = '010-';
@@ -427,10 +440,12 @@ function submitForm() {
 	var phone = document.getElementById('phone').value.trim();
 	var consentRadio = document.querySelector('input[name="agree"]:checked');
 
-	if(!consentRadio) { alert('개인정보 수집 및 이용 동의 여부를 선택해주세요.'); return; }
-	if(consentRadio.value === '거부') { alert('개인정보 수집 및 이용에 동의해주셔야 등록이 가능합니다.'); return; }
-	if(!name || name.length < 2) { alert('이름을 2자 이상 입력해주세요.'); document.getElementById('name').focus(); return; }
-	if(phone.length < 12) { alert('연락처를 정확히 입력해주세요.'); document.getElementById('phone').focus(); return; }
+	$('.form-input.error').removeClass('error'); $('.consent-row.error').removeClass('error');
+	var hasError = false;
+	if(!name || name.length < 2) { document.getElementById('name').closest('.form-input').classList.add('error'); if(!hasError){document.getElementById('name').focus();} hasError=true; }
+	if(phone.length < 12) { document.getElementById('phone').closest('.form-input').classList.add('error'); if(!hasError){document.getElementById('phone').focus();} hasError=true; }
+	if(!consentRadio || consentRadio.value === '거부') { document.querySelector('.consent-row').classList.add('error'); hasError=true; }
+	if(hasError) { alert(!name||name.length<2?'이름을 2자 이상 입력해주세요.':phone.length<12?'연락처를 정확히 입력해주세요.':'개인정보 수집 및 이용에 동의해주세요.'); return; }
 
 	isSubmitting = true;
 	var btn = document.getElementById('submitBtn');
@@ -489,8 +504,9 @@ function submitForm() {
 }
 
 // 모달 열기/닫기
-function openModal(){ $("#reservationModal").css("display","flex").hide().fadeIn(200); if(window.fpInstance) window.fpInstance.redraw(); }
-function closeModal(){ $("#reservationModal").fadeOut(200); }
+function openModal(){ document.body.style.overflow='hidden'; $("#reservationModal").css("display","flex").hide().fadeIn(200); if(window.fpInstance) window.fpInstance.redraw(); }
+function closeModal(){ document.body.style.overflow=''; $("#reservationModal").fadeOut(200); }
+function clearReservation(){ $("#visitDate").val(""); $("#visitTime").val(""); var $d=$("#resvDisplay"); $d.text("날짜와 시간을 선택해 주세요"); $d.removeClass("has-value"); $("#resvClearBtn").hide(); $(".time-btn").removeClass("active"); $("#time_select_box").hide(); $("#time_msg_default").show(); if(window.fpInstance) window.fpInstance.clear(); }
 
 // 시간 버튼 생성
 $(document).ready(function(){
@@ -511,13 +527,16 @@ $(document).ready(function(){
 	});
 
 	$(document).on("click",".time-btn",function(){
+		var sDate=$("#visitDate").val();
+		if(!sDate){ alert("날짜를 먼저 선택해주세요."); return; }
 		$(".time-btn").removeClass("active"); $(this).addClass("active");
-		var sDate=$("#visitDate").val(), sLabel=$(this).data("label"), sVal=$(this).data("value");
+		var sLabel=$(this).data("label"), sVal=$(this).data("value");
 		var days=['일','월','화','수','목','금','토'], d=new Date(sDate);
 		$("#visitTime").val(sVal);
 		var $disp=$("#resvDisplay");
 		$disp.text(sDate+" ("+days[d.getDay()]+") "+$(this).data("label"));
 		$disp.addClass("has-value");
+		$("#resvClearBtn").show();
 		setTimeout(function(){ closeModal(); },150);
 	});
 });

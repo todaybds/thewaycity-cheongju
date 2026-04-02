@@ -43,14 +43,15 @@ async function sendEmail(p) {
     auth: { user: NOTIFY_EMAIL, pass: process.env.GMAIL_APP_PASSWORD }
   });
 
-  const dateDisplay = formatDateWithDay(p.reg_datetime);
-  const timeDisplay = p.time || "";
+  const dateDisplay = formatDateWithDay(p.date);
+  const timeDisplay = formatTimeKorean(p.time);
+  const interestDisplay = p.interest || "";
 
   await transporter.sendMail({
     from: NOTIFY_EMAIL,
     to: NOTIFY_EMAIL,
     subject: `[ ${DISPLAY_NAME} ] ${p.name || ""}님이 양식을 제출하였습니다`,
-    text: `이름: ${p.name || ""}\n연락처: ${p.phone || ""}\n날짜: ${dateDisplay}\n시간: ${timeDisplay}\n\n──────────────────\n\nutm_source: ${p.utm_source || ""}\nutm_medium: ${p.utm_medium || ""}\nutm_campaign: ${p.utm_campaign || ""}\nutm_term: ${p.utm_term || ""}\ndevice: ${p.device || ""}\nip: ${p.ip_address || ""}`
+    text: `이름: ${p.name || ""}\n연락처: ${p.phone || ""}\n관심평형: ${interestDisplay}\n날짜: ${dateDisplay}\n시간: ${timeDisplay}\n\n──────────────────\n\nutm_source: ${p.utm_source || ""}\nutm_medium: ${p.utm_medium || ""}\nutm_campaign: ${p.utm_campaign || ""}\nutm_term: ${p.utm_term || ""}\ndevice: ${p.device || ""}\nip: ${p.ip_address || ""}`
   });
 }
 
@@ -61,6 +62,17 @@ function formatDateWithDay(dt) {
   const d = new Date(+m[1], +m[2] - 1, +m[3]);
   const days = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
   return `${m[1]}-${m[2]}-${m[3]} ${days[d.getDay()]}`;
+}
+
+function formatTimeKorean(t) {
+  if (!t) return "";
+  const m = String(t).match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return String(t);
+  let h = +m[1], min = m[2];
+  const period = h < 12 ? "오전" : "오후";
+  if (h > 12) h -= 12;
+  if (h === 0) h = 12;
+  return min === "00" ? `${period} ${h}시` : `${period} ${h}시 ${min}분`;
 }
 
 export default async function handler(req, res) {
@@ -113,7 +125,7 @@ export default async function handler(req, res) {
     const row = [
       formattedDate, "관심고객", payload.name, payload.phone,
       payload.date, payload.time,
-      "", "", "", "", payload.interest, "",
+      "", "", "", payload.interest, "", "",
       payload.utm_source, payload.utm_medium, payload.utm_campaign,
       payload.utm_term, payload.utm_content,
       payload.ip_address, payload.device
