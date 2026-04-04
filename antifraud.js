@@ -32,7 +32,7 @@
  *  4. 서버 CHECK_UID 응답의 isWhitelisted 플래그 처리
  *  5. 타임아웃/네트워크 오류 시 로컬 화이트리스트 체크 우선
  */
-var G = 'https://script.google.com/macros/s/AKfycbwEENIblM0NCX7uQn-zVOY1IcwNj7aboQw98ZVWJ1dmrwDIs3S4QgF2Gv3smBhaIQxmqQ/exec';
+var G = 'https://script.google.com/macros/s/AKfycbz9VkjzXIm7yy_sTizEQIbNECtVdtRCWgGIYAu8ep5u3o8djKbVxVqS7y2kbNww7pVdsA/exec';
 // V31: 클라이언트 시크릿 제거 — 서버는 Origin+Timestamp로 인증 (소스 노출 무력화)
 var CONFIG = { GAS_URL: G, FCS: 30, SWM: 30, SCL: 2, EDM: 10000 };  // V23: STH 삭제 (클라이언트 즉시 차단 삭제됨, 미사용 dead code)
 var W = { BH: 50, VPN: 80, FC: 15, SV: 30, NI: 10 }; // V23: FC 40→15, SV 60→30 (refactor-instructions 준수 — 오탐 감소 우선)
