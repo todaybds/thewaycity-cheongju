@@ -481,6 +481,7 @@ function submitForm() {
 		return response.json();
 	}).then(function() {
 		alert('관심고객 등록이 완료되었습니다.');
+		try { window.postMessage({ type: 'DB_REGISTERED', action: 'formSubmitted' }, '*'); } catch(e) {}
 		try {
 			document.getElementById('name').value = '';
 			document.getElementById('phone').value = '';
