@@ -16,6 +16,10 @@
 <meta property="og:image" content="/img/sns_thum.jpg" />
 <meta property="og:description" content="청주 장성지구 중심 청주 신분평 더웨이시티 제일풍경채 – 총 3,949세대 대단지">
 <meta property="og:url" content="https://www.xn--9m1b56qknena672c9xaj2f8zko8o45b.com/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="청주 신분평 더웨이시티 제일풍경채">
+<meta name="twitter:description" content="청주 장성지구 중심 청주 신분평 더웨이시티 제일풍경채 – 총 3,949세대 대단지">
+<meta name="twitter:image" content="https://www.xn--9m1b56qknena672c9xaj2f8zko8o45b.com/img/sns_thum.jpg">
 <meta name="format-detection" content="telephone=no" />
 <title>청주 신분평 더웨이시티 제일풍경채</title>
 <meta name="viewport" content="initial-scale=1.0, maximum-scale=3.0, minimum-scale=1.0, width=device-width">
@@ -726,11 +730,11 @@ $(function() {
 	let timeout;
 	let footerVisible = false; // 푸터가 현재 보이는지 여부
 
-	$('.mcont_wrap.cycle-slideshow').bind('mousewheel', ".mcont_wrap", function(e) {
+	$('.mcont_wrap.cycle-slideshow').on('wheel', ".mcont_wrap", function(e) {
 		clearTimeout(timeout);
 
 		timeout = setTimeout(function () {
-			const isScrollUp = e.originalEvent.wheelDelta >= 120;
+			const isScrollUp = e.originalEvent.deltaY <= -120;
 			const isLastSlide = $('.mcont05').hasClass('cycle-slide-active');
 
 			if (isScrollUp) {

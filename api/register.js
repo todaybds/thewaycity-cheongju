@@ -4,7 +4,7 @@ import nodemailer from 'nodemailer';
 
 const SPREADSHEET_ID = "1Ku6ayZ5G5ChC7_gayS5N2IaKjZ7RkWSTT2cm4M9Gpio";
 const NOTIFY_EMAIL = "skrl1347@gmail.com";
-const DISPLAY_NAME = "신분평 더웨이시티";
+const DISPLAY_NAME = "청주 신분평 더웨이시티 제일풍경채";
 
 let cachedAuth = null;
 
@@ -152,7 +152,7 @@ export default async function handler(req, res) {
 
     // 1. Supabase에 즉시 저장 (빠름 ~100-200ms)
     const regId = await insertToSupabase({
-      site_domain: 'cheongju-theway.com',
+      site_domain: 'xn--9m1b56qknena672c9xaj2f8zko8o45b.com',
       reg_datetime: formattedDate,
       name: payload.name,
       phone: payload.phone,
