@@ -1,5 +1,8 @@
-/* 부정클릭 방지 시스템 V32 — Vercel 배포용 (antifraud.js) */
-/* V32 변경사항 (2026-04-02): Nonce 타임아웃 클라이언트 검증
+/* 부정클릭 방지 시스템 V35 — Vercel 배포용 (antifraud.js) */
+/* V35 변경사항 (2026-04-08): SERVER_PRE_CHECK 고스트 차단 레코드 제거
+ *  1. CHECK_UID blocked 응답 시 BLOCK 재전송 제거 (차단목록에 score=0 고스트 레코드 방지)
+ *
+ * V32 변경사항 (2026-04-02): Nonce 타임아웃 클라이언트 검증
  *  1. S.wlNonceTime 추가 — nonce 발급 시각 기록
  *  2. WHITELIST 전송 전 nonce 경과 시간 체크 (25분 초과 시 VISIT 재호출로 갱신)
  *  3. 서버 30분 TTL에 5분 여유를 두어 nonce 만료로 인한 WHITELIST 실패 방지
@@ -32,7 +35,7 @@
  *  4. 서버 CHECK_UID 응답의 isWhitelisted 플래그 처리
  *  5. 타임아웃/네트워크 오류 시 로컬 화이트리스트 체크 우선
  */
-var G = 'https://script.google.com/macros/s/AKfycbz9VkjzXIm7yy_sTizEQIbNECtVdtRCWgGIYAu8ep5u3o8djKbVxVqS7y2kbNww7pVdsA/exec';
+var G = 'https://script.google.com/macros/s/AKfycbwEENIblM0NCX7uQn-zVOY1IcwNj7aboQw98ZVWJ1dmrwDIs3S4QgF2Gv3smBhaIQxmqQ/exec';
 // V31: 클라이언트 시크릿 제거 — 서버는 Origin+Timestamp로 인증 (소스 노출 무력화)
 var CONFIG = { GAS_URL: G, FCS: 30, SWM: 30, SCL: 2, EDM: 10000 };  // V23: STH 삭제 (클라이언트 즉시 차단 삭제됨, 미사용 dead code)
 var W = { BH: 50, VPN: 80, FC: 15, SV: 30, NI: 10 }; // V23: FC 40→15, SV 60→30 (refactor-instructions 준수 — 오탐 감소 우선)
@@ -284,7 +287,7 @@ function setupIframeListener() {
     window.addEventListener('message', function (e) {
         // V28: origin 검증 강화 — 빈 origin(data:/file: URI) 차단
         if (!e.origin || e.origin === 'null') return;
-        var allowed = [location.origin, 'https://www.osan-xi.com', 'https://www.cantaviledition.com', 'https://www.trivn-seosan.com', 'https://www.xn--9m1b56qknena672c9xaj2f8zko8o45b.com'];
+        var allowed = [location.origin, 'https://www.osan-xi.com', 'https://www.cantaviledition.com', 'https://www.trivn-seosan.com', 'https://www.xn--9m1b56qknena672c9xaj2f8zko8o45b.com', 'https://unjeong-ipark.com', 'https://www.unjeong-ipark.com'];
         if (allowed.indexOf(e.origin) === -1) return;
         var d = e.data; if (!d) return;
         if (d.type === 'DB_REGISTERED' || d.action === 'GTM_LEAD_COMPLETE' || d.action === 'formSubmitted') {
@@ -463,7 +466,7 @@ async function initAntifraud() {
     try {
       srvBlocked = await checkServerUID(S.uid, S.ip);
     } catch (e) {}
-    if (!S.isWhitelisted && srvBlocked) { S.isBlocked = true; persistBlock(S.uid); renderAccessDenied(); sendToServer({ action: 'BLOCK', blockType: 'SERVER_PRE_CHECK' }); return }
+    if (!S.isWhitelisted && srvBlocked) { S.isBlocked = true; persistBlock(S.uid); renderAccessDenied(); return }
 
     setupIframeListener(); setupEngagementTracking(); collectBehaviorMetrics();
     S.sessionStart = Date.now();
