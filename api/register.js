@@ -52,7 +52,7 @@ async function sendEmail(p) {
     from: NOTIFY_EMAIL,
     to: NOTIFY_EMAIL,
     subject: `[ ${DISPLAY_NAME} ] ${p.name || ""}님이 양식을 제출하였습니다`,
-    text: `이름: ${p.name || ""}\n연락처: ${p.phone || ""}\n관심평형: ${interestDisplay}\n날짜: ${dateDisplay}\n시간: ${timeDisplay}\n\n──────────────────\n\nutm_source: ${p.utm_source || ""}\nutm_medium: ${p.utm_medium || ""}\nutm_campaign: ${p.utm_campaign || ""}\nutm_term: ${p.utm_term || ""}\ndevice: ${p.device || ""}\nip: ${p.ip_address || ""}`
+    text: `이름: ${p.name || ""}\n연락처: ${p.phone || ""}\n관심평형: ${interestDisplay}\n날짜: ${dateDisplay}\n시간: ${timeDisplay}${p.suspect_flag ? '\n\n🚨 ' + p.suspect_flag : ''}${p.recaptcha_score != null ? '\nreCAPTCHA 점수: ' + p.recaptcha_score : ''}\n\n──────────────────\n\nutm_source: ${p.utm_source || ""}\nutm_medium: ${p.utm_medium || ""}\nutm_campaign: ${p.utm_campaign || ""}\nutm_term: ${p.utm_term || ""}\ndevice: ${p.device || ""}\nip: ${p.ip_address || ""}`
   });
 }
 
@@ -124,6 +124,31 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "연락처를 정확히 입력해주세요." });
   }
 
+  // reCAPTCHA v3 검증 (실패해도 등록은 진행 — 진성고객 차단 방지)
+  let recaptchaScore = null;
+  let suspectFlag = null;
+  if (body.recaptcha_token && process.env.RECAPTCHA_SECRET_KEY) {
+    try {
+      const rcRes = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${body.recaptcha_token}`
+      });
+      const rcData = await rcRes.json();
+      recaptchaScore = rcData.score ?? null;
+      if (rcData.success && rcData.score < 0.3) {
+        suspectFlag = '⚠️ reCAPTCHA 저점수: ' + rcData.score;
+      }
+      if (!rcData.success) {
+        suspectFlag = '⚠️ reCAPTCHA 검증실패';
+      }
+    } catch (e) {
+      // reCAPTCHA 서버 오류 시 무시
+    }
+  } else if (!body.recaptcha_token) {
+    suspectFlag = '⚠️ reCAPTCHA 토큰없음';
+  }
+
   const now = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
   const formattedDate = now.getUTCFullYear() + '-' +
     String(now.getUTCMonth() + 1).padStart(2, '0') + '-' +
@@ -147,7 +172,9 @@ export default async function handler(req, res) {
       utm_term: body.utm_term || "",
       utm_content: body.utm_content || "",
       ip_address: clientIP,
-      device: body.device || ""
+      device: body.device || "",
+      recaptcha_score: recaptchaScore,
+      suspect_flag: suspectFlag
     };
 
     // 1. Supabase에 즉시 저장 (빠름 ~100-200ms)

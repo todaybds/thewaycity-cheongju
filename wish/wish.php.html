@@ -459,27 +459,51 @@ function submitForm() {
 	var vTime = document.getElementById('visitTime').value;
 	if(vDate && !vTime){ if(!confirm('방문 시간을 선택하지 않으셨습니다. 예약 없이 등록하시겠습니까?')){ openModal(); return; } vDate=''; }
 
-	// 서버 전송 및 응답 대기
-	fetch('/api/register', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({
-			name: name, phone: phone, interest: interest,
-			visitDate: document.getElementById('visitDate').value || '',
-			visitTime: document.getElementById('visitTime').value || '',
-			agree: '동의', hp_check: document.getElementById('hp_check').value,
-			utm_source: document.getElementById('utm_source').value,
-			utm_medium: document.getElementById('utm_medium').value,
-			utm_campaign: document.getElementById('utm_campaign').value,
-			utm_term: document.getElementById('utm_term').value,
-			utm_content: document.getElementById('utm_content').value,
-			ip_address: document.getElementById('ip_address').value,
-			device: document.getElementById('device').value
-		})
-	}).then(function(response) {
+	var postData = {
+		name: name, phone: phone, interest: interest,
+		visitDate: document.getElementById('visitDate').value || '',
+		visitTime: document.getElementById('visitTime').value || '',
+		agree: '동의', hp_check: document.getElementById('hp_check').value,
+		utm_source: document.getElementById('utm_source').value,
+		utm_medium: document.getElementById('utm_medium').value,
+		utm_campaign: document.getElementById('utm_campaign').value,
+		utm_term: document.getElementById('utm_term').value,
+		utm_content: document.getElementById('utm_content').value,
+		ip_address: document.getElementById('ip_address').value,
+		device: document.getElementById('device').value
+	};
+
+	// reCAPTCHA v3 토큰 발급 후 서버 전송
+	var sendRequest = function(recaptchaToken) {
+		if (recaptchaToken) postData.recaptcha_token = recaptchaToken;
+		return fetch('/api/register', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(postData)
+		});
+	};
+
+	// reCAPTCHA 실행 (실패 시에도 등록 진행 — 진성고객 차단 방지)
+	var submitPromise;
+	if (typeof grecaptcha !== 'undefined') {
+		try {
+			submitPromise = grecaptcha.execute('6Lf3SqQsAAAAAL2JGOUMHG485WsQ0fPX9p1x4JBN', { action: 'register' })
+				.then(sendRequest)
+				.catch(function() { return sendRequest(null); });
+		} catch(e) {
+			submitPromise = sendRequest(null);
+		}
+	} else {
+		submitPromise = sendRequest(null);
+	}
+
+	submitPromise.then(function(response) {
 		if (!response.ok) throw new Error('서버 오류');
 		return response.json();
 	}).then(function() {
+		// 전환 추적
+		window.postMessage({ type: 'DB_REGISTERED', action: 'formSubmitted' }, '*');
+
 		alert('관심고객 등록이 완료되었습니다.');
 		try { window.postMessage({ type: 'DB_REGISTERED', action: 'formSubmitted' }, '*'); } catch(e) {}
 		try {
@@ -578,5 +602,6 @@ if(window.wcs) {
   }
 })();
 </script>
+<script src="https://www.google.com/recaptcha/api.js?render=6Lf3SqQsAAAAAL2JGOUMHG485WsQ0fPX9p1x4JBN"></script>
 </body>
 </html>
