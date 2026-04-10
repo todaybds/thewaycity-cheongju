@@ -485,8 +485,18 @@ async function initAntifraud() {
     // 화이트리스트 체크
     try { if (isLocalWhitelisted(S.uid)) S.isWhitelisted = true } catch (e) { }
 
-    // V38: 캐시된 IP 동기 로드 → VISIT 즉시 전송 (네트워크 호출 전)
+    // V38: 캐시된 IP 로드 — 캐시 없으면 /api/ip 빠른 조회 (같은 도메인 ~50ms)
     var cachedIP = tryLoadCachedIP();
+    if (!cachedIP) {
+        try {
+            var _qr = await fetch('/api/ip', { cache: 'no-cache' });
+            var _qd = await _qr.json();
+            if (_qd.ip && /^(\d{1,3}\.){3}\d{1,3}$/.test(_qd.ip)) {
+                S.ip = _qd.ip; S.carrier = _qd.carrier || '';
+                try { localStorage.setItem('naf_ipc', JSON.stringify({ i: S.ip, s: '', c: S.carrier, v: false, t: Date.now() })) } catch(e) {}
+            }
+        } catch(e) {}
+    }
 
     S.sessionStart = Date.now();
     try { localStorage.setItem('naf_start_' + S.uid, String(S.sessionStart)) } catch (e) { }
