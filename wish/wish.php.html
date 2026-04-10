@@ -484,65 +484,31 @@ function submitForm() {
 		device: document.getElementById('device').value
 	};
 
-	// reCAPTCHA v3 토큰 발급 후 서버 전송
-	var sendRequest = function(recaptchaToken) {
-		if (recaptchaToken) postData.recaptcha_token = recaptchaToken;
-		return fetch('/api/register', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(postData)
-		});
-	};
+	// 즉시 성공 처리 + 백그라운드 전송 (reCAPTCHA 제거 — 지연 원인)
+	localStorage.setItem('last_reg_key', _regKey);
+	localStorage.setItem('last_reg_time', String(Date.now()));
+	try { window.postMessage({ type: 'DB_REGISTERED', action: 'formSubmitted' }, '*'); } catch(e) {}
 
-	// reCAPTCHA 실행 (실패 시에도 등록 진행 — 진성고객 차단 방지)
-	var submitPromise;
-	if (typeof grecaptcha !== 'undefined') {
-		try {
-			submitPromise = grecaptcha.execute('6Lf3SqQsAAAAAL2JGOUMHG485WsQ0fPX9p1x4JBN', { action: 'register' })
-				.then(sendRequest)
-				.catch(function() { return sendRequest(null); });
-		} catch(e) {
-			submitPromise = sendRequest(null);
-		}
-	} else {
-		submitPromise = sendRequest(null);
-	}
+	alert('관심고객 등록이 완료되었습니다.');
 
-	submitPromise.then(function(response) {
-		if (!response.ok) throw new Error('서버 오류');
-		return response.json();
-	}).then(function() {
-		// 중복 방지 키 저장
-		localStorage.setItem('last_reg_key', _regKey);
-		localStorage.setItem('last_reg_time', String(Date.now()));
+	// 폼 초기화
+	try {
+		document.getElementById('name').value = '';
+		document.getElementById('phone').value = '';
+		document.querySelectorAll('input[name="interest"]:checked').forEach(function(c){ c.checked = false; });
+		document.getElementById('visitDate').value = '';
+		document.getElementById('visitTime').value = '';
+		clearReservation();
+	} catch(e) {}
+	btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+	isSubmitting = false;
 
-		// 전환 추적
-		try { window.postMessage({ type: 'DB_REGISTERED', action: 'formSubmitted' }, '*'); } catch(e) {}
-
-		// 폼 초기화
-		try {
-			document.getElementById('name').value = '';
-			document.getElementById('phone').value = '';
-			document.querySelectorAll('input[name="interest"]:checked').forEach(function(c){ c.checked = false; });
-			document.getElementById('visitDate').value = '';
-			document.getElementById('visitTime').value = '';
-			clearReservation();
-		} catch(e) {}
-
-		alert('관심고객 등록이 완료되었습니다.');
-		btn.textContent = '✔ 등록 완료';
-		btn.style.background = '#2E6B4F';
-		setTimeout(function() {
-			btn.textContent = '관심고객 등록하기';
-			btn.style.background = '';
-			btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
-			isSubmitting = false;
-		}, 2000);
-	}).catch(function() {
-		alert('등록에 실패했습니다. 다시 시도해주세요.');
-		btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
-		isSubmitting = false;
-	});
+	// 백그라운드 전송
+	fetch('/api/register', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(postData)
+	}).catch(function() {});
 }
 
 // 모달 열기/닫기
