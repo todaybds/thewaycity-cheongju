@@ -436,6 +436,17 @@ document.getElementById('phone').addEventListener('keydown', function(e) {
 var isSubmitting = false;
 function submitForm() {
 	if(isSubmitting) return;
+
+	// 클라이언트측 5분 중복 방지
+	var _name = document.getElementById('name').value.trim();
+	var _phone = document.getElementById('phone').value.trim();
+	var _regKey = _name + '|' + _phone;
+	var _lastKey = localStorage.getItem('last_reg_key');
+	var _lastTime = parseInt(localStorage.getItem('last_reg_time') || '0');
+	if (_lastKey === _regKey && (Date.now() - _lastTime) < 300000) {
+		alert('이미 등록이 완료되었습니다.\n담당자가 빠른 시일 내에 연락드리겠습니다.');
+		return;
+	}
 	var name = document.getElementById('name').value.trim();
 	var phone = document.getElementById('phone').value.trim();
 	var consentRadio = document.querySelector('input[name="agree"]:checked');
@@ -501,17 +512,23 @@ function submitForm() {
 		if (!response.ok) throw new Error('서버 오류');
 		return response.json();
 	}).then(function() {
-		// 전환 추적
-		window.postMessage({ type: 'DB_REGISTERED', action: 'formSubmitted' }, '*');
+		// 중복 방지 키 저장
+		localStorage.setItem('last_reg_key', _regKey);
+		localStorage.setItem('last_reg_time', String(Date.now()));
 
-		alert('관심고객 등록이 완료되었습니다.');
+		// 전환 추적
 		try { window.postMessage({ type: 'DB_REGISTERED', action: 'formSubmitted' }, '*'); } catch(e) {}
+
+		alert('관심고객 등록이 완료되었습니다.\n담당자가 빠른 시일 내에 연락드리겠습니다.');
+
+		// 폼 초기화
 		try {
 			document.getElementById('name').value = '';
 			document.getElementById('phone').value = '';
 			document.querySelectorAll('input[name="interest"]:checked').forEach(function(c){ c.checked = false; });
 			document.getElementById('visitDate').value = '';
 			document.getElementById('visitTime').value = '';
+			clearReservation();
 		} catch(e) {}
 	}).catch(function() {
 		alert("등록에 실패했습니다. 다시 시도해주세요.");

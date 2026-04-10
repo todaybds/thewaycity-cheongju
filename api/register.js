@@ -177,6 +177,24 @@ export default async function handler(req, res) {
       suspect_flag: suspectFlag
     };
 
+    // 0. 서버측 중복 방지: 같은 이름+전화번호 5분 이내 재등록 차단
+    try {
+      const fiveMinAgo = new Date(now.getTime() - 300000);
+      const sinceStr = fiveMinAgo.getUTCFullYear() + '-' +
+        String(fiveMinAgo.getUTCMonth() + 1).padStart(2, '0') + '-' +
+        String(fiveMinAgo.getUTCDate()).padStart(2, '0') + ' ' +
+        String(fiveMinAgo.getUTCHours()).padStart(2, '0') + ':' +
+        String(fiveMinAgo.getUTCMinutes()).padStart(2, '0');
+      const dupCheck = await fetch(
+        `${process.env.SUPABASE_URL}/rest/v1/registrations?name=eq.${encodeURIComponent(body.name.trim())}&phone=eq.${encodeURIComponent(body.phone)}&reg_datetime=gte.${encodeURIComponent(sinceStr)}&select=id&limit=1`,
+        { headers: { 'apikey': process.env.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}` } }
+      );
+      if (dupCheck.ok) {
+        const existing = await dupCheck.json();
+        if (existing.length > 0) return res.status(200).json({ success: true, id: existing[0].id, deduplicated: true });
+      }
+    } catch (e) {}
+
     // 1. Supabase에 즉시 저장 (빠름 ~100-200ms)
     const regId = await insertToSupabase({
       site_domain: 'xn--9m1b56qknena672c9xaj2f8zko8o45b.com',
@@ -218,6 +236,21 @@ export default async function handler(req, res) {
 
         try { await sendEmail(payload); emailOk = true; }
         catch (e) { errors.push('email: ' + e.message); }
+
+        // 오류 발생 시 관리자 이메일 알림
+        if (errors.length > 0) {
+          try {
+            const errTransporter = nodemailer.createTransport({
+              service: 'gmail',
+              auth: { user: NOTIFY_EMAIL, pass: process.env.GMAIL_APP_PASSWORD }
+            });
+            await errTransporter.sendMail({
+              from: NOTIFY_EMAIL, to: NOTIFY_EMAIL,
+              subject: `[오류] ${DISPLAY_NAME} 등록 백엔드 실패`,
+              text: `고객: ${payload.name} (${payload.phone})\n오류: ${errors.join(' | ')}\n시각: ${formattedDate}`
+            });
+          } catch (mailErr) {}
+        }
 
         await updateSyncStatus(regId, {
           sheets_synced: sheetOk,
