@@ -411,10 +411,32 @@ function extractNaverAdParams() {
     try {
         var p = new URL(location.href).searchParams;
         var ar = p.get('n_rank') || '', nk = p.get('n_keyword') || '', nq = p.get('n_query') || '';
-        var isN = !!(ar || nk || nq || p.get('n_media') || p.get('nkw'));
+        var nm = p.get('n_media') || '', nct = p.get('n_campaign_type') || '', nad = p.get('n_ad') || '';
+        // V38: 모든 n_ 파라미터 감지 (카페/파워콘텐츠/확장검색 포함)
+        var hasNParam = !!(ar || nk || nq || nm || nct || nad || p.get('nkw'));
+        if (!hasNParam) { p.forEach(function(v, k) { if (k.indexOf('n_') === 0) hasNParam = true; }); }
+        // V38: referrer 기반 네이버 광고 감지 (파라미터 없어도 네이버 광고 리퍼러면 광고로 처리)
+        var ref = S.referrer || document.referrer || '';
+        var isNaverRef = /naver\.com/i.test(ref);
+        var isCafeRef = /cafe\.naver\.com/i.test(ref);
+        if (!hasNParam && isNaverRef) {
+            // UTM 파라미터로도 광고 감지
+            var us = p.get('utm_source') || '', um = p.get('utm_medium') || '';
+            if (/naver/i.test(us) || /cpc|cpa|display|cafe|ad/i.test(um)) hasNParam = true;
+        }
         o.adRank = ar;
-        o.adProduct = isN ? '광고/통합검색-' + (S.deviceType === 'PC' ? 'PC' : '모바일') : '';
-        o.isNaverAd = isN; o.nQuery = nq; o.nKeyword = nk;
+        o.isNaverAd = hasNParam; o.nQuery = nq; o.nKeyword = nk;
+        // V38: 광고 상품 자동 분류 (통합검색/카페/파워콘텐츠)
+        if (hasNParam) {
+            var dev = S.deviceType === 'PC' ? 'PC' : '모바일';
+            if (isCafeRef || /cafe/i.test(nm) || /cafe/i.test(nct)) {
+                o.adProduct = '광고(웹)/카페-' + dev;
+            } else if (/power/i.test(nct) || /content/i.test(nm)) {
+                o.adProduct = '광고/파워콘텐츠-' + dev;
+            } else {
+                o.adProduct = '광고/통합검색-' + dev;
+            }
+        }
     } catch (e) { }
     return o;
 }
