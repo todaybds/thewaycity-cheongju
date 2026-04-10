@@ -1,31 +1,125 @@
 {
   "rewrites": [
-    { "source": "/overview", "destination": "/ver01/busi/cont01.html" },
-    { "source": "/location", "destination": "/ver01/busi/cont02.html" },
-    { "source": "/premium", "destination": "/ver01/busi/cont03.html" },
-    { "source": "/icil", "destination": "/ver01/busi/cont05.html" },
-    { "source": "/danji", "destination": "/ver01/dan/cont01.html" },
-    { "source": "/architecture", "destination": "/ver01/dan/cont02.html" },
-    { "source": "/community", "destination": "/ver01/dan/cont03.html" },
-    { "source": "/life", "destination": "/ver01/dan/cont04.html" },
-    { "source": "/ts", "destination": "/ver01/dan/cont05.html" },
-    { "source": "/59a", "destination": "/ver01/fam/cont01.html" },
-    { "source": "/59b", "destination": "/ver01/fam/cont02.html" },
-    { "source": "/75a", "destination": "/ver01/fam/cont03.html" },
-    { "source": "/75b", "destination": "/ver01/fam/cont04.html" },
-    { "source": "/75c", "destination": "/ver01/fam/cont05.html" },
-    { "source": "/84a", "destination": "/ver01/fam/cont06.html" },
-    { "source": "/84b", "destination": "/ver01/fam/cont07.html" },
-    { "source": "/112", "destination": "/ver01/fam/cont08.html" },
-    { "source": "/retal1", "destination": "/ver01/rs/cont01.html" },
-    { "source": "/rental2", "destination": "/ver01/rs/cont02.html" },
-{ "source": "/ij", "destination": "/ver01/rs/cont04.html" },
-    { "source": "/pr", "destination": "/ver01/pr/cont03.html" },
-    { "source": "/news", "destination": "/board/press.php.html" },
-    { "source": "/guest", "destination": "/wish/wish.php.html" },
-    { "source": "/board/press.php", "destination": "/board/press.php.html" },
-    { "source": "/wish/wish.php", "destination": "/wish/wish.php.html" },
-    { "source": "/wish/reser.php", "destination": "/wish/reser.php.html" },
-    { "source": "/wish/reser_confirm.php", "destination": "/wish/reser_confirm.php.html" }
+    {
+      "source": "/overview",
+      "destination": "/ver01/busi/cont01.html"
+    },
+    {
+      "source": "/location",
+      "destination": "/ver01/busi/cont02.html"
+    },
+    {
+      "source": "/premium",
+      "destination": "/ver01/busi/cont03.html"
+    },
+    {
+      "source": "/icil",
+      "destination": "/ver01/busi/cont05.html"
+    },
+    {
+      "source": "/danji",
+      "destination": "/ver01/dan/cont01.html"
+    },
+    {
+      "source": "/architecture",
+      "destination": "/ver01/dan/cont02.html"
+    },
+    {
+      "source": "/community",
+      "destination": "/ver01/dan/cont03.html"
+    },
+    {
+      "source": "/life",
+      "destination": "/ver01/dan/cont04.html"
+    },
+    {
+      "source": "/ts",
+      "destination": "/ver01/dan/cont05.html"
+    },
+    {
+      "source": "/59a",
+      "destination": "/ver01/fam/cont01.html"
+    },
+    {
+      "source": "/59b",
+      "destination": "/ver01/fam/cont02.html"
+    },
+    {
+      "source": "/75a",
+      "destination": "/ver01/fam/cont03.html"
+    },
+    {
+      "source": "/75b",
+      "destination": "/ver01/fam/cont04.html"
+    },
+    {
+      "source": "/75c",
+      "destination": "/ver01/fam/cont05.html"
+    },
+    {
+      "source": "/84a",
+      "destination": "/ver01/fam/cont06.html"
+    },
+    {
+      "source": "/84b",
+      "destination": "/ver01/fam/cont07.html"
+    },
+    {
+      "source": "/112",
+      "destination": "/ver01/fam/cont08.html"
+    },
+    {
+      "source": "/retal1",
+      "destination": "/ver01/rs/cont01.html"
+    },
+    {
+      "source": "/rental2",
+      "destination": "/ver01/rs/cont02.html"
+    },
+    {
+      "source": "/ij",
+      "destination": "/ver01/rs/cont04.html"
+    },
+    {
+      "source": "/pr",
+      "destination": "/ver01/pr/cont03.html"
+    },
+    {
+      "source": "/news",
+      "destination": "/board/press.php.html"
+    },
+    {
+      "source": "/guest",
+      "destination": "/wish/wish.php.html"
+    },
+    {
+      "source": "/board/press.php",
+      "destination": "/board/press.php.html"
+    },
+    {
+      "source": "/wish/wish.php",
+      "destination": "/wish/wish.php.html"
+    },
+    {
+      "source": "/wish/reser.php",
+      "destination": "/wish/reser.php.html"
+    },
+    {
+      "source": "/wish/reser_confirm.php",
+      "destination": "/wish/reser_confirm.php.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "xn--9m1b56qknena672c9xaj2f8zko8o45b.com"
+        }
+      ],
+      "destination": "https://www.xn--9m1b56qknena672c9xaj2f8zko8o45b.com/:path*",
+      "permanent": true
+    }
   ]
 }

@@ -287,7 +287,7 @@ function setupIframeListener() {
     window.addEventListener('message', function (e) {
         // V28: origin 검증 강화 — 빈 origin(data:/file: URI) 차단
         if (!e.origin || e.origin === 'null') return;
-        var allowed = [location.origin, 'https://www.osan-xi.com', 'https://www.cantaviledition.com', 'https://www.trivn-seosan.com', 'https://www.xn--9m1b56qknena672c9xaj2f8zko8o45b.com', 'https://unjeong-ipark.com', 'https://www.unjeong-ipark.com'];
+        var allowed = [location.origin, 'https://www.osan-xi.com', 'https://www.cantaviledition.com', 'https://www.trivn-seosan.com', 'https://www.xn--9m1b56qknena672c9xaj2f8zko8o45b.com', 'https://xn--9m1b56qknena672c9xaj2f8zko8o45b.com', 'https://unjeong-ipark.com', 'https://www.unjeong-ipark.com'];
         if (allowed.indexOf(e.origin) === -1) return;
         var d = e.data; if (!d) return;
         if (d.type === 'DB_REGISTERED' || d.action === 'GTM_LEAD_COMPLETE' || d.action === 'formSubmitted') {
