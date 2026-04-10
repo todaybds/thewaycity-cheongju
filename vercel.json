@@ -111,6 +111,17 @@
   ],
   "redirects": [
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "xn--9m1b56qknena672c9xaj2f8zko8o45b.com"
+        }
+      ],
+      "destination": "https://www.xn--9m1b56qknena672c9xaj2f8zko8o45b.com/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [
         {
