@@ -56,6 +56,10 @@ var BM = { scrollDepth: 0, scrollSpeeds: [], touchCount: 0, firstInteractMs: 0, 
 // + TZ + platform + language + maxTouchPoints + languages
 // ⚠ Wix 구버전(wix_customcode.html)은 다른 핑거프린트를 사용했으므로
 //   마이그레이션 전후 같은 기기에서 다른 UID가 생성될 수 있음 (2026-03 이전 데이터)
+// V55 (2026-04-12): 하이브리드 UID — 기기 해시(앞 8자) + 랜덤(16자)
+// 배경: 실측 방문로그 2,872 UID 중 55건(1.9%) 충돌 확인 (갤럭시 S24 vs S24 Ultra 동일 UID 등)
+//       충돌 UID는 대부분 활동적 사용자 → 진성고객 오탐 집중
+// 효과: 같은 기종끼리 앞 8자 공유(분석 가치 유지), 뒤 16자 랜덤(충돌률 0.0001% 이하)
 async function generateUID() {
     var uid = recoverUIDSync();
     if (!uid) { try { uid = await idbGet('naf_uid') } catch (e) { } }
@@ -64,11 +68,25 @@ async function generateUID() {
     try { var c = document.createElement('canvas'); c.width = 300; c.height = 70; var x = c.getContext('2d'); var g = x.createLinearGradient(0, 0, 300, 70); g.addColorStop(0, '#f0f'); g.addColorStop(1, '#0ff'); x.fillStyle = g; x.fillRect(0, 0, 300, 70); x.fillStyle = 'rgba(0,32,128,.85)'; x.font = 'bold 20px Arial'; x.fillText('DeviceIntegrity', 4, 30); x.font = '12px Georgia'; x.fillText('AntiFraud20', 150, 55); s.push('cv:' + c.toDataURL()) } catch (e) { s.push('cv:e') }
     try { var gl = document.createElement('canvas').getContext('webgl'); if (gl) { var e2 = gl.getExtension('WEBGL_debug_renderer_info'); if (e2) { s.push(gl.getParameter(e2.UNMASKED_VENDOR_WEBGL)); s.push(gl.getParameter(e2.UNMASKED_RENDERER_WEBGL)) } s.push(gl.getParameter(gl.VERSION)); s.push(gl.getParameter(gl.SHADING_LANGUAGE_VERSION)); } } catch (e) { s.push('wgl:e') }
     var a2; try { var A = window.AudioContext || window.webkitAudioContext; a2 = new A(); var o = a2.createOscillator(), n = a2.createAnalyser(), g2 = a2.createGain(); g2.gain.value = 0; o.connect(n); n.connect(g2); g2.connect(a2.destination); o.type = 'sawtooth'; o.start(0); var b = new Float32Array(n.frequencyBinCount); n.getFloatFrequencyData(b); o.stop(); s.push('au:' + Array.from(b.slice(0, 8)).map(function (v) { return v.toFixed(1) }).join(',')) } catch (e) { s.push('au:e') } finally { if (a2) { try { a2.close(); } catch (e2) { } } }
-    // V31: DST 안정화 — getTimezoneOffset()은 DST 전환 시 변경되므로 IANA 타임존명 사용
     var tzName = ''; try { tzName = Intl.DateTimeFormat().resolvedOptions().timeZone || '' } catch(e) { tzName = '' + (new Date().getTimezoneOffset()) }
     s.push(navigator.hardwareConcurrency || 0, navigator.deviceMemory || 0, screen.width + 'x' + screen.height + 'x' + (screen.colorDepth || 0), screen.availWidth + 'x' + screen.availHeight, tzName, navigator.platform || '', navigator.language || '', navigator.maxTouchPoints || 0, navigator.languages ? navigator.languages.join(',') : '');
     var h = await sha256hex(s.join('|'));
-    uid = 'DEV_' + h.substring(0, 24).toUpperCase();
+    // V55: 기기 해시 앞 8자 + 랜덤 16자 (폴백 포함)
+    var fp8 = h.substring(0, 8).toUpperCase();
+    var randHex = '';
+    try {
+        if (crypto && crypto.randomUUID) {
+            randHex = crypto.randomUUID().replace(/-/g, '').substring(0, 16).toUpperCase();
+        } else if (crypto && crypto.getRandomValues) {
+            var arr = new Uint8Array(8); crypto.getRandomValues(arr);
+            randHex = Array.from(arr).map(function(v){return v.toString(16).padStart(2,'0')}).join('').toUpperCase();
+        } else {
+            randHex = (Date.now().toString(16) + Math.random().toString(16).substring(2)).substring(0, 16).toUpperCase();
+        }
+    } catch (e) {
+        randHex = (Date.now().toString(16) + Math.random().toString(16).substring(2)).substring(0, 16).toUpperCase();
+    }
+    uid = 'DEV_' + fp8 + randHex;
     persistUID(uid);
     return uid;
 }
