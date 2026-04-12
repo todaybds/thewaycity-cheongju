@@ -487,7 +487,8 @@ async function initAntifraud() {
     if (!S.isWhitelisted && srvBlocked) {
         S.isBlocked = true; persistBlock(S.uid);
         // V41: 차단 재방문도 접속로그에 기록 (네이버 클릭 비용은 이미 발생 — 증거 확보)
-        sendToServer({ action: 'VISIT', blockedRevisit: true });
+        var _bDup = 0; try { _bDup = JSON.parse(localStorage.getItem('naf_v_' + S.uid) || '[]').length } catch(e) {}
+        sendToServer({ action: 'VISIT', blockedRevisit: true, dupCount: _bDup });
         renderAccessDenied(); return
     }
 
