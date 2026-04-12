@@ -361,13 +361,12 @@ function calcBQS() {
 }
 
 // ── 차단 화면 ──
+// V56 (2026-04-12): 관찰 모드 전환 — 차단 화면 완전 비활성화
+// 배경: 4월 99명 진성고객 차단 피해 확인, 광고비 손실은 차단 화면이 아닌 네이버 FIFO로만 방어 가능
+// 모든 방문자 정상 사이트 접근 허용, 데이터는 서버에 계속 수집 (수동 차단 판단용)
 function renderAccessDenied() {
-    var style = document.createElement('style');
-    style.textContent = '#N{position:fixed;top:0;left:0;width:100vw;height:100vh;background:#0d0d0d;color:#d0d0d0;font-family:monospace;display:flex;align-items:center;justify-content:center;z-index:2147483647;padding:16px;box-sizing:border-box}#N .b{max-width:680px;width:100%;border:1px solid #2a2a2a;padding:28px;background:#111}#N h1{font-size:20px;color:#f0f0f0;margin:0 0 12px}#N .n{font-size:11px;color:#3a3a3a;line-height:1.8}';
-    document.head.appendChild(style);
-    var el = document.createElement('div'); el.id = 'N';
-    el.innerHTML = '<div class="b"><h1>접근이 제한되었습니다</h1><div class="n">비정상 접속이 감지되었습니다.<br>고객센터로 문의하십시오.</div></div>';
-    document.body.appendChild(el);
+    // V56: no-op — 차단 화면 표시 안 함. 서버 점수/로그는 계속 기록됨.
+    return;
 }
 
 // ── iframe/폼 리스너 ──
