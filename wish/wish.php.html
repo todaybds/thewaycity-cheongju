@@ -488,6 +488,7 @@ function submitForm() {
 	localStorage.setItem('last_reg_key', _regKey);
 	localStorage.setItem('last_reg_time', String(Date.now()));
 	try { window.postMessage({ type: 'DB_REGISTERED', action: 'formSubmitted' }, '*'); } catch(e) {}
+	try { if(window.wcs) { var _conv = {}; _conv.type = 'lead'; wcs.trans(_conv); } } catch(e) {}
 
 	alert('관심고객 등록이 완료되었습니다.');
 
@@ -568,7 +569,7 @@ $(document).ready(function(){
 <script type="text/javascript" src="//wcs.naver.net/wcslog.js"></script>
 <script type="text/javascript">
 if(!wcs_add) var wcs_add = {};
-wcs_add["wa"] = "16069f531c9f3d0";
+wcs_add["wa"] = "s_5a333284a36d";
 if(window.wcs) {
   wcs_do();
 }
