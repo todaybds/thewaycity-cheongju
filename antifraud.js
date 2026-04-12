@@ -180,6 +180,8 @@ async function detectDevice() {
                     if (hints.model) m = hints.model.substring(0, 20);
                 }
             } catch(e) {}
+            // V41: UA 모델 없음 + Client Hints도 실패 = 기기 은닉 의심
+            if (!m) S._hiddenDevice = true;
         }
         // Galaxy 모델 정규화
         if (m && /^SM-/i.test(m)) m = 'Galaxy ' + m.toUpperCase();
@@ -224,6 +226,8 @@ function calculateScore(vd) {
     if (vd.recentCount >= 5) { sc += 50; rs.push('RAPID:+50(' + vd.recentCount + '회)') }
     // V25: navigator.webdriver 봇 감지 (Selenium/Puppeteer 즉시 차단)
     if (navigator.webdriver) { sc += 200; rs.push('BOT:webdriver') }
+    // V41: 기기 모델 은닉 (UA 축소 + Client Hints 거부) — 정상 브라우저는 응답함
+    if (S._hiddenDevice) { sc += 30; rs.push('HIDDEN_DEVICE:+30') }
     return { score: sc, reasons: rs };
 }
 
@@ -395,7 +399,7 @@ function buildPayload() {
         siteDomain: S.siteDomain, siteUrl: location.origin || 'https://' + S.siteDomain,
         adRank: S.adRank, adProduct: S.adProduct, isNaverAd: S.isNaverAd, pageViews: S.pageViews,
         keyword: S.keyword, engagements: S.engagements, score: S.score,
-        scoreReasons: S.scoreReasons.join('|'), isWhitelisted: S.isWhitelisted, telClicked: BM.telClicked,
+        scoreReasons: S.scoreReasons.join('|'), isWhitelisted: S.isWhitelisted, telClicked: BM.telClicked, hiddenDevice: !!S._hiddenDevice,
         sessionStart: S.sessionStart, timestamp: new Date().toISOString(),
         nQuery: S.nQuery, nKeyword: S.nKeyword, referrer: S.referrer || ''
     };
