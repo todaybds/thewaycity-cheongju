@@ -25,7 +25,7 @@ async function getAuthToken() {
 
 async function appendToSheet(row) {
   const token = await getAuthToken();
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent("A:S")}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent("A:T")}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
 
   const res = await fetch(url, {
     method: 'POST',
@@ -264,8 +264,10 @@ export default async function handler(req, res) {
     );
 
     // 3. 백그라운드에서 Sheets + 이메일 처리
+    // 2026-04-12 청주 시트 구조를 다른 3개 사이트와 동일하게 통일
+    // A=구분(자동번호 =ROW()-1), B=등록일, C=경로, D=고객명, ...
     const row = [
-      formattedDate, "관심고객", payload.name, payload.phone,
+      "=ROW()-1", formattedDate, "관심고객", payload.name, payload.phone,
       payload.date, payload.time,
       "", "", "", payload.interest, "", "",
       payload.utm_source, payload.utm_medium, payload.utm_campaign,
