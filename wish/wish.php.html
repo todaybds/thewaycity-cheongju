@@ -486,6 +486,8 @@ function submitForm() {
 	var vTime = document.getElementById('visitTime').value;
 	if(vDate && !vTime){ if(!confirm('방문 시간을 선택하지 않으셨습니다. 예약 없이 등록하시겠습니까?')){ openModal(); return; } vDate=''; }
 
+	var _eid = Date.now() + '_' + Math.random().toString(36).substr(2,9);
+	var _getCookie = function(n){ var v=document.cookie.match('(^|;)\\s*'+n+'\\s*=\\s*([^;]+)'); return v?v.pop():''; };
 	var postData = {
 		name: name, phone: phone, interest: interest,
 		visitDate: document.getElementById('visitDate').value || '',
@@ -497,14 +499,18 @@ function submitForm() {
 		utm_term: document.getElementById('utm_term').value,
 		utm_content: document.getElementById('utm_content').value,
 		ip_address: document.getElementById('ip_address').value,
-		device: document.getElementById('device').value
+		device: document.getElementById('device').value,
+		event_id: _eid,
+		fbp: _getCookie('_fbp'),
+		fbc: _getCookie('_fbc'),
+		page_url: window.location.href
 	};
 
 	// 즉시 성공 처리 + 백그라운드 전송 (reCAPTCHA 제거 — 지연 원인)
 	localStorage.setItem('last_reg_key', _regKey);
 	localStorage.setItem('last_reg_time', String(Date.now()));
 	try { window.postMessage({ type: 'DB_REGISTERED', action: 'formSubmitted' }, '*'); } catch(e) {}
-	try { if(typeof fbq !== 'undefined') { var _ph = document.getElementById('phone').value.replace(/[^0-9]/g,''); var _fn = document.getElementById('name').value.trim(); fbq('init', '632260369616595', { ph: _ph, fn: _fn }); var _eid = Date.now() + '_' + Math.random().toString(36).substr(2,9); fbq('track', 'Lead', { value: 0.00, currency: 'KRW' }, { eventID: _eid }); } } catch(e) {}
+	try { if(typeof fbq !== 'undefined') { var _ph = document.getElementById('phone').value.replace(/[^0-9]/g,''); var _fn = document.getElementById('name').value.trim(); fbq('init', '632260369616595', { ph: _ph, fn: _fn }); fbq('track', 'Lead', { value: 0.00, currency: 'KRW' }, { eventID: _eid }); } } catch(e) {}
 	try { if(window.wcs) { var _conv = {}; _conv.type = 'lead'; wcs.trans(_conv); } } catch(e) {}
 	try { if(typeof gtag !== 'undefined') gtag('event', 'generate_lead', { currency: 'KRW', value: 0 }); } catch(e) {}
 

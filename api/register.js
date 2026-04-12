@@ -2,10 +2,12 @@ import { waitUntil } from '@vercel/functions';
 import { GoogleAuth } from 'google-auth-library';
 import nodemailer from 'nodemailer';
 import { checkBlacklist } from './blacklist.js';
+import { sendLeadToMeta } from './_meta-capi.js';
 
 const SPREADSHEET_ID = "1Ku6ayZ5G5ChC7_gayS5N2IaKjZ7RkWSTT2cm4M9Gpio";
 const NOTIFY_EMAIL = "skrl1347@gmail.com";
 const DISPLAY_NAME = "청주 신분평 더웨이시티 제일풍경채";
+const META_PIXEL_ID = "632260369616595";
 
 let cachedAuth = null;
 
@@ -247,6 +249,19 @@ export default async function handler(req, res) {
 
     // 2. 즉시 응답
     res.status(200).json({ success: true, id: regId });
+
+    // Meta CAPI 서버사이드 Lead 이벤트 전송
+    waitUntil(
+      sendLeadToMeta({
+        pixelId: META_PIXEL_ID,
+        accessToken: process.env.META_ACCESS_TOKEN,
+        name: payload.name, phone: payload.phone,
+        eventId: body.event_id, clientIp: clientIP,
+        userAgent: req.headers['user-agent'],
+        fbp: body.fbp, fbc: body.fbc,
+        eventSourceUrl: body.page_url || req.headers.referer || ''
+      }).catch(e => console.error('Meta CAPI:', e.message))
+    );
 
     // 3. 백그라운드에서 Sheets + 이메일 처리
     const row = [
