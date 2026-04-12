@@ -158,7 +158,8 @@ function checkServerUID(uid, ip) {
 }
 
 // ── 디바이스 감지 (상세) ──
-function detectDevice() {
+// V41: UA Client Hints API로 모델명 추출 (Android 13+ UA 축소 대응)
+async function detectDevice() {
     var ua = navigator.userAgent;
     var isT = /(tablet|ipad|playbook|silk)|(android(?!.*mobile))/i.test(ua);
     var isM = !isT && /Android|iPhone|iPod|IEMobile|Opera Mini|Mobile/i.test(ua);
@@ -168,7 +169,23 @@ function detectDevice() {
     if (sm) m = 'Galaxy ' + sm[1].toUpperCase();
     else if (/iPhone/.test(ua)) { var v = ua.match(/CPU iPhone OS (\d+)/i); m = v ? 'iPhone(iOS' + v[1] + ')' : 'iPhone'; }
     else if (/iPad/.test(ua)) { var v = ua.match(/CPU OS (\d+)/i); m = v ? 'iPad(iPadOS' + v[1] + ')' : 'iPad'; }
-    else if (/Android/.test(ua)) { var v = ua.match(/;\s*([^;)]+?)\s+Build\//i); m = v ? 'Android(' + v[1].trim().substring(0, 20) + ')' : 'Android'; }
+    else if (/Android/.test(ua)) {
+        var v = ua.match(/;\s*([^;)]+?)\s+Build\//i);
+        if (v) { m = v[1].trim().substring(0, 20); }
+        else {
+            // V41: Client Hints — Android 13+에서 UA 모델명 축소 시 대체 추출
+            try {
+                if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+                    var hints = await navigator.userAgentData.getHighEntropyValues(['model', 'platformVersion']);
+                    if (hints.model) m = hints.model.substring(0, 20);
+                }
+            } catch(e) {}
+        }
+        // Galaxy 모델 정규화
+        if (m && /^SM-/i.test(m)) m = 'Galaxy ' + m.toUpperCase();
+        else if (m) m = m;
+        else m = 'Android';
+    }
     else if (/Windows NT/.test(ua)) { m = 'PC'; }
     else if (/Macintosh/.test(ua)) { m = 'Mac'; }
     if (!m) m = dt;
@@ -447,7 +464,7 @@ async function initAntifraud() {
     }
 
     S.uid = await generateUID();
-    var dv = detectDevice(); S.deviceType = dv.deviceType; S.deviceModel = dv.deviceModel;
+    var dv = await detectDevice(); S.deviceType = dv.deviceType; S.deviceModel = dv.deviceModel;
     S.siteDomain = location.hostname;
     S.keyword = extractKeyword();
     S.referrer = getReferrer();
