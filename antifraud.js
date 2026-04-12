@@ -47,7 +47,7 @@ var G = 'https://script.google.com/macros/s/AKfycbwEENIblM0NCX7uQn-zVOY1IcwNj7ab
 // V31: 클라이언트 시크릿 제거 — 서버는 Origin+Timestamp로 인증 (소스 노출 무력화)
 var CONFIG = { GAS_URL: G, FCS: 30, SWM: 30, SCL: 2, EDM: 10000 };  // V23: STH 삭제 (클라이언트 즉시 차단 삭제됨, 미사용 dead code)
 var W = { BH: 50, VPN: 80, FC: 15, SV: 30, NI: 10 }; // V23: FC 40→15, SV 60→30 (refactor-instructions 준수 — 오탐 감소 우선)
-var S = { uid: '', ip: '', isp: '', isVPN: false, deviceType: '', deviceModel: '', siteDomain: '', adRank: '', adProduct: '', isNaverAd: false, pageViews: 1, sessionStart: Date.now(), engagements: 0, isWhitelisted: false, isBlocked: false, score: 0, scoreReasons: [], keyword: '', iframeActive: false, nQuery: '', nKeyword: '', referrer: '', wlNonce: '', wlNonceTime: 0 };
+var S = { uid: '', ip: '', isp: '', isVPN: false, orgName: '', asn: '', country: '', deviceType: '', deviceModel: '', siteDomain: '', adRank: '', adProduct: '', isNaverAd: false, pageViews: 1, sessionStart: Date.now(), engagements: 0, isWhitelisted: false, isBlocked: false, score: 0, scoreReasons: [], keyword: '', iframeActive: false, nQuery: '', nKeyword: '', referrer: '', wlNonce: '', wlNonceTime: 0 };
 var BM = { scrollDepth: 0, scrollSpeeds: [], touchCount: 0, firstInteractMs: 0, formFocusMs: 0, formFillStart: 0, formFillMs: 0, idleSegments: 0, mouseMoveDist: 0, lastActivityMs: 0, telClicked: false };
 
 // ── UID 생성 (결정론적 디바이스 핑거프린트) ──
@@ -195,15 +195,47 @@ async function detectDevice() {
 }
 
 // ── IP 조회 ──
+// V43: ipinfo.io 통합 — ISP/ASN/Org/국가/도시 정밀 식별
+//   - 1순위: ipinfo.io (정확한 ISP/ASN/조직명, 무료 50K/월)
+//   - 2순위: ipwho.is (ipinfo 실패 시 폴백)
+//   - 3순위: ipify (IP만 — 최후 폴백)
+var IPINFO_TOKEN = '06bc83f7504e84';
 async function fetchIPInfo() {
     var ck = 'naf_ipc';
-    try { var cc = JSON.parse(localStorage.getItem(ck)); if (cc && Date.now() - cc.t < 6e5) { S.ip = cc.i; S.isp = cc.s; S.isVPN = cc.v; return } } catch (e) { }  // V32: 30분→10분 캐시 (WiFi→4G 전환 시 IP 변경 반영)
+    try { var cc = JSON.parse(localStorage.getItem(ck)); if (cc && Date.now() - cc.t < 6e5) { S.ip = cc.i; S.isp = cc.s; S.isVPN = cc.v; S.orgName = cc.o || ''; S.asn = cc.a || ''; S.country = cc.c || ''; return } } catch (e) { }
     var v4 = /^(\d{1,3}\.){3}\d{1,3}$/;
     var ps = [
-        async () => { var d = await fetch('https://api4.ipify.org?format=json', { cache: 'no-cache' }).then(r => r.json()); if (!v4.test(d.ip)) throw 0; return { ip: d.ip, isp: '' } },
-        async () => { var d = await fetch('https://ipwho.is/', { cache: 'no-cache' }).then(r => r.json()); if (!v4.test(d.ip)) throw 0; return { ip: d.ip, isp: d.connection && (d.connection.isp || d.connection.org) || '' } },
+        // V43: ipinfo.io — 정확한 ISP/ASN/조직 정보
+        async () => {
+            var d = await fetch('https://ipinfo.io/json?token=' + IPINFO_TOKEN, { cache: 'no-cache' }).then(r => r.json());
+            if (!v4.test(d.ip)) throw 0;
+            // org 형식: "AS17853 LGTELECOM" → asn 추출
+            var orgRaw = d.org || '';
+            var asnMatch = orgRaw.match(/^(AS\d+)\s+(.+)$/);
+            var asn = asnMatch ? asnMatch[1] : '';
+            var orgName = asnMatch ? asnMatch[2] : orgRaw;
+            return { ip: d.ip, isp: orgName, orgName: orgName, asn: asn, country: d.country || '', city: d.city || '' };
+        },
+        async () => { var d = await fetch('https://ipwho.is/', { cache: 'no-cache' }).then(r => r.json()); if (!v4.test(d.ip)) throw 0; return { ip: d.ip, isp: d.connection && (d.connection.isp || d.connection.org) || '', orgName: '', asn: '', country: d.country_code || '' } },
+        async () => { var d = await fetch('https://api4.ipify.org?format=json', { cache: 'no-cache' }).then(r => r.json()); if (!v4.test(d.ip)) throw 0; return { ip: d.ip, isp: '', orgName: '', asn: '', country: '' } },
     ];
-    for (var p of ps) { try { var r = await p(); if (r.ip) { S.ip = r.ip; S.isp = r.isp; S.isVPN = /amazon|google|microsoft|digitalocean|linode|vultr|ovh|hetzner|cloudflare|vpn|proxy|tor|datacenter/i.test(r.isp); try { localStorage.setItem(ck, JSON.stringify({ i: S.ip, s: S.isp, v: S.isVPN, t: Date.now() })) } catch (e) { } return } } catch (e) { } }
+    for (var p of ps) {
+        try {
+            var r = await p();
+            if (r.ip) {
+                S.ip = r.ip;
+                S.isp = r.isp;
+                S.orgName = r.orgName || '';
+                S.asn = r.asn || '';
+                S.country = r.country || '';
+                // VPN/Proxy/Datacenter 감지 (ASN + 조직명 둘 다 체크)
+                var combined = (r.orgName + ' ' + r.isp).toLowerCase();
+                S.isVPN = /amazon|google|microsoft|digitalocean|linode|vultr|ovh|hetzner|cloudflare|vpn|proxy|tor|datacenter|hi-on-net|hion|nordvpn|expressvpn|surfshark|cloudfront|akamai|fastly/i.test(combined);
+                try { localStorage.setItem(ck, JSON.stringify({ i: S.ip, s: S.isp, v: S.isVPN, o: S.orgName, a: S.asn, c: S.country, t: Date.now() })) } catch (e) { }
+                return;
+            }
+        } catch (e) { }
+    }
 }
 
 // ── 방문 이력 & 점수 ──
@@ -228,6 +260,15 @@ function calculateScore(vd) {
     if (navigator.webdriver) { sc += 200; rs.push('BOT:webdriver') }
     // V41: 기기 모델 은닉 (UA 축소 + Client Hints 거부) — 정상 브라우저는 응답함
     if (S._hiddenDevice) { sc += 30; rs.push('HIDDEN_DEVICE:+30') }
+    // V43: ASN 기반 데이터센터/VPN 즉시 차단급 점수
+    if (S.asn) {
+        var DATACENTER_ASNS = ['AS16509','AS15169','AS8075','AS14618','AS14061','AS13335','AS24940','AS20473','AS6939','AS16276'];
+        var VPN_ASNS = ['AS9286','AS9848']; // 하이온넷 등 (확장 가능)
+        if (DATACENTER_ASNS.indexOf(S.asn) >= 0) { sc += 200; rs.push('DC_ASN:' + S.asn); }
+        else if (VPN_ASNS.indexOf(S.asn) >= 0) { sc += 150; rs.push('VPN_ASN:' + S.asn); }
+    }
+    // V43: 비한국 IP (한국 사이트인데 해외에서 접속)
+    if (S.country && S.country !== 'KR' && S.country !== '') { sc += 80; rs.push('FOREIGN:' + S.country); }
     return { score: sc, reasons: rs };
 }
 
@@ -400,6 +441,7 @@ function buildPayload() {
         adRank: S.adRank, adProduct: S.adProduct, isNaverAd: S.isNaverAd, pageViews: S.pageViews,
         keyword: S.keyword, engagements: S.engagements, score: S.score,
         scoreReasons: S.scoreReasons.join('|'), isWhitelisted: S.isWhitelisted, telClicked: BM.telClicked, hiddenDevice: !!S._hiddenDevice,
+        orgName: S.orgName || '', asn: S.asn || '', country: S.country || '',
         sessionStart: S.sessionStart, timestamp: new Date().toISOString(),
         nQuery: S.nQuery, nKeyword: S.nKeyword, referrer: S.referrer || ''
     };
