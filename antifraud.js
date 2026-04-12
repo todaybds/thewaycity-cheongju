@@ -1,5 +1,9 @@
-/* 부정클릭 방지 시스템 V38 — Vercel 배포용 (antifraud.js) */
-/* V35 변경사항 (2026-04-08): SERVER_PRE_CHECK 고스트 차단 레코드 제거
+/* 부정클릭 방지 시스템 V40 — Vercel 배포용 (antifraud.js) */
+/* V40 변경사항 (2026-04-12): UTM 파라미터 네이버 광고 감지
+ *  1. extractNaverAdParams에 UTM 기반 감지 추가 (utm_source=naver + utm_medium=sa/cpc/search)
+ *  2. UTM만 설정된 캠페인에서도 광고 유입 정상 추적 (접속로그 누락 해결)
+ *
+ * V35 변경사항 (2026-04-08): SERVER_PRE_CHECK 고스트 차단 레코드 제거
  *  1. CHECK_UID blocked 응답 시 BLOCK 재전송 제거 (차단목록에 score=0 고스트 레코드 방지)
  *
  * V32 변경사항 (2026-04-02): Nonce 타임아웃 클라이언트 검증
@@ -39,7 +43,7 @@ var G = 'https://script.google.com/macros/s/AKfycbwEENIblM0NCX7uQn-zVOY1IcwNj7ab
 // V31: 클라이언트 시크릿 제거 — 서버는 Origin+Timestamp로 인증 (소스 노출 무력화)
 var CONFIG = { GAS_URL: G, FCS: 30, SWM: 30, SCL: 2, EDM: 10000 };  // V23: STH 삭제 (클라이언트 즉시 차단 삭제됨, 미사용 dead code)
 var W = { BH: 50, VPN: 80, FC: 15, SV: 30, NI: 10 }; // V23: FC 40→15, SV 60→30 (refactor-instructions 준수 — 오탐 감소 우선)
-var S = { uid: '', ip: '', isp: '', isVPN: false, deviceType: '', deviceModel: '', siteDomain: '', adRank: '', adProduct: '', isNaverAd: false, pageViews: 1, sessionStart: Date.now(), engagements: 0, isWhitelisted: false, isBlocked: false, score: 0, scoreReasons: [], keyword: '', iframeActive: false, nQuery: '', nKeyword: '', referrer: '', wlNonce: '', wlNonceTime: 0, carrier: '' };
+var S = { uid: '', ip: '', isp: '', isVPN: false, deviceType: '', deviceModel: '', siteDomain: '', adRank: '', adProduct: '', isNaverAd: false, pageViews: 1, sessionStart: Date.now(), engagements: 0, isWhitelisted: false, isBlocked: false, score: 0, scoreReasons: [], keyword: '', iframeActive: false, nQuery: '', nKeyword: '', referrer: '', wlNonce: '', wlNonceTime: 0 };
 var BM = { scrollDepth: 0, scrollSpeeds: [], touchCount: 0, firstInteractMs: 0, formFocusMs: 0, formFillStart: 0, formFillMs: 0, idleSegments: 0, mouseMoveDist: 0, lastActivityMs: 0, telClicked: false };
 
 // ── UID 생성 (결정론적 디바이스 핑거프린트) ──
@@ -167,21 +171,16 @@ function detectDevice() {
     return { deviceType: dt, deviceModel: m };
 }
 
-// ── IP 조회 (V38: /api/ip 로컬 엔드포인트 최우선 — 외부 API 대비 10배 빠름) ──
-function tryLoadCachedIP() {
-    try { var cc = JSON.parse(localStorage.getItem('naf_ipc')); if (cc && cc.i) { S.ip = cc.i; S.isp = cc.s || ''; S.carrier = cc.c || ''; S.isVPN = !!cc.v; return cc.i } } catch (e) { }
-    return '';
-}
+// ── IP 조회 ──
 async function fetchIPInfo() {
     var ck = 'naf_ipc';
-    try { var cc = JSON.parse(localStorage.getItem(ck)); if (cc && Date.now() - cc.t < 6e5) { S.ip = cc.i; S.isp = cc.s; S.carrier = cc.c || ''; S.isVPN = cc.v; return } } catch (e) { }
-    var v4 = /^(\\d{1,3}\\.){3}\\d{1,3}$/;
+    try { var cc = JSON.parse(localStorage.getItem(ck)); if (cc && Date.now() - cc.t < 6e5) { S.ip = cc.i; S.isp = cc.s; S.isVPN = cc.v; return } } catch (e) { }  // V32: 30분→10분 캐시 (WiFi→4G 전환 시 IP 변경 반영)
+    var v4 = /^(\d{1,3}\.){3}\d{1,3}$/;
     var ps = [
-        async () => { var d = await fetch('/api/ip', { cache: 'no-cache' }).then(r => r.json()); if (!v4.test(d.ip)) throw 0; return { ip: d.ip, isp: '', carrier: d.carrier || '' } },
-        async () => { var d = await fetch('https://api4.ipify.org?format=json', { cache: 'no-cache' }).then(r => r.json()); if (!v4.test(d.ip)) throw 0; return { ip: d.ip, isp: '', carrier: '' } },
-        async () => { var d = await fetch('https://ipwho.is/', { cache: 'no-cache' }).then(r => r.json()); if (!v4.test(d.ip)) throw 0; return { ip: d.ip, isp: d.connection && (d.connection.isp || d.connection.org) || '', carrier: '' } },
+        async () => { var d = await fetch('https://api4.ipify.org?format=json', { cache: 'no-cache' }).then(r => r.json()); if (!v4.test(d.ip)) throw 0; return { ip: d.ip, isp: '' } },
+        async () => { var d = await fetch('https://ipwho.is/', { cache: 'no-cache' }).then(r => r.json()); if (!v4.test(d.ip)) throw 0; return { ip: d.ip, isp: d.connection && (d.connection.isp || d.connection.org) || '' } },
     ];
-    for (var p of ps) { try { var r = await p(); if (r.ip) { S.ip = r.ip; S.isp = r.isp; S.carrier = r.carrier || ''; S.isVPN = /amazon|google|microsoft|digitalocean|linode|vultr|ovh|hetzner|cloudflare|vpn|proxy|tor|datacenter/i.test(r.isp); try { localStorage.setItem(ck, JSON.stringify({ i: S.ip, s: S.isp, c: S.carrier, v: S.isVPN, t: Date.now() })) } catch (e) { } return } } catch (e) { } }
+    for (var p of ps) { try { var r = await p(); if (r.ip) { S.ip = r.ip; S.isp = r.isp; S.isVPN = /amazon|google|microsoft|digitalocean|linode|vultr|ovh|hetzner|cloudflare|vpn|proxy|tor|datacenter/i.test(r.isp); try { localStorage.setItem(ck, JSON.stringify({ i: S.ip, s: S.isp, v: S.isVPN, t: Date.now() })) } catch (e) { } return } } catch (e) { } }
 }
 
 // ── 방문 이력 & 점수 ──
@@ -292,7 +291,7 @@ function setupIframeListener() {
     window.addEventListener('message', function (e) {
         // V28: origin 검증 강화 — 빈 origin(data:/file: URI) 차단
         if (!e.origin || e.origin === 'null') return;
-        var allowed = [location.origin, 'https://www.osan-xi.com', 'https://www.cantaviledition.com', 'https://www.trivn-seosan.com', 'https://www.xn--9m1b56qknena672c9xaj2f8zko8o45b.com', 'https://xn--9m1b56qknena672c9xaj2f8zko8o45b.com', 'https://unjeong-ipark.com', 'https://www.unjeong-ipark.com'];
+        var allowed = [location.origin, 'https://www.osan-xi.com', 'https://www.cantaviledition.com', 'https://www.trivn-seosan.com', 'https://www.xn--9m1b56qknena672c9xaj2f8zko8o45b.com', 'https://unjeong-ipark.com', 'https://www.unjeong-ipark.com'];
         if (allowed.indexOf(e.origin) === -1) return;
         var d = e.data; if (!d) return;
         if (d.type === 'DB_REGISTERED' || d.action === 'GTM_LEAD_COMPLETE' || d.action === 'formSubmitted') {
@@ -377,7 +376,7 @@ function buildPayload() {
         keyword: S.keyword, engagements: S.engagements, score: S.score,
         scoreReasons: S.scoreReasons.join('|'), isWhitelisted: S.isWhitelisted, telClicked: BM.telClicked,
         sessionStart: S.sessionStart, timestamp: new Date().toISOString(),
-        nQuery: S.nQuery, nKeyword: S.nKeyword, referrer: S.referrer || '', carrier: S.carrier || ''
+        nQuery: S.nQuery, nKeyword: S.nKeyword, referrer: S.referrer || ''
     };
 }
 // V26: 재시도 메커니즘 — VISIT/BLOCK 등 중요 액션 유실 방지
@@ -411,32 +410,20 @@ function extractNaverAdParams() {
     try {
         var p = new URL(location.href).searchParams;
         var ar = p.get('n_rank') || '', nk = p.get('n_keyword') || '', nq = p.get('n_query') || '';
-        var nm = p.get('n_media') || '', nct = p.get('n_campaign_type') || '', nad = p.get('n_ad') || '';
-        // V38: 모든 n_ 파라미터 감지 (카페/파워콘텐츠/확장검색 포함)
-        var hasNParam = !!(ar || nk || nq || nm || nct || nad || p.get('nkw'));
-        if (!hasNParam) { p.forEach(function(v, k) { if (k.indexOf('n_') === 0) hasNParam = true; }); }
-        // V38: referrer 기반 네이버 광고 감지 (파라미터 없어도 네이버 광고 리퍼러면 광고로 처리)
-        var ref = S.referrer || document.referrer || '';
-        var isNaverRef = /naver\.com/i.test(ref);
-        var isCafeRef = /cafe\.naver\.com/i.test(ref);
-        if (!hasNParam && isNaverRef) {
-            // UTM 파라미터로도 광고 감지
-            var us = p.get('utm_source') || '', um = p.get('utm_medium') || '';
-            if (/naver/i.test(us) || /cpc|cpa|display|cafe|ad/i.test(um)) hasNParam = true;
-        }
-        o.adRank = ar;
-        o.isNaverAd = hasNParam; o.nQuery = nq; o.nKeyword = nk;
-        // V38: 광고 상품 자동 분류 (통합검색/카페/파워콘텐츠)
-        if (hasNParam) {
-            var dev = S.deviceType === 'PC' ? 'PC' : '모바일';
-            if (isCafeRef || /cafe/i.test(nm) || /cafe/i.test(nct)) {
-                o.adProduct = '광고(웹)/카페-' + dev;
-            } else if (/power/i.test(nct) || /content/i.test(nm)) {
-                o.adProduct = '광고/파워콘텐츠-' + dev;
-            } else {
-                o.adProduct = '광고/통합검색-' + dev;
+        var isN = !!(ar || nk || nq || p.get('n_media') || p.get('nkw'));
+        // V40: UTM 파라미터로 네이버 광고 유입 감지 (utm_source=naver + utm_medium=sa/cpc)
+        if (!isN) {
+            var us = (p.get('utm_source') || '').toLowerCase();
+            var um = (p.get('utm_medium') || '').toLowerCase();
+            if (us === 'naver' && (um === 'sa' || um === 'cpc' || um === 'search')) {
+                isN = true;
+                nk = nk || p.get('utm_term') || p.get('utm_content') || '';
+                nq = nq || p.get('utm_term') || '';
             }
         }
+        o.adRank = ar;
+        o.adProduct = isN ? '광고/통합검색-' + (S.deviceType === 'PC' ? 'PC' : '모바일') : '';
+        o.isNaverAd = isN; o.nQuery = nq; o.nKeyword = nk;
     } catch (e) { }
     return o;
 }
@@ -485,43 +472,31 @@ async function initAntifraud() {
     // 화이트리스트 체크
     try { if (isLocalWhitelisted(S.uid)) S.isWhitelisted = true } catch (e) { }
 
-    // V38: 캐시된 IP 로드 — 캐시 없으면 /api/ip 빠른 조회 (같은 도메인 ~50ms)
-    var cachedIP = tryLoadCachedIP();
-    if (!cachedIP) {
-        try {
-            var _qr = await fetch('/api/ip', { cache: 'no-cache' });
-            var _qd = await _qr.json();
-            if (_qd.ip && /^(\d{1,3}\.){3}\d{1,3}$/.test(_qd.ip)) {
-                S.ip = _qd.ip; S.carrier = _qd.carrier || '';
-                try { localStorage.setItem('naf_ipc', JSON.stringify({ i: S.ip, s: '', c: S.carrier, v: false, t: Date.now() })) } catch(e) {}
-            }
-        } catch(e) {}
-    }
+    // V32: IP 먼저 조회 후 CHECK_UID (V29 병렬 실행 시 IP 빈 상태 전송 버그 수정)
+    var srvBlocked = false;
+    try {
+      await fetchIPInfo();
+    } catch (e) {}
+    try {
+      srvBlocked = await checkServerUID(S.uid, S.ip);
+    } catch (e) {}
+    if (!S.isWhitelisted && srvBlocked) { S.isBlocked = true; persistBlock(S.uid); renderAccessDenied(); return }
 
+    setupIframeListener(); setupEngagementTracking(); collectBehaviorMetrics();
     S.sessionStart = Date.now();
     try { localStorage.setItem('naf_start_' + S.uid, String(S.sessionStart)) } catch (e) { }
     try { localStorage.setItem('naf_kw_' + S.uid, JSON.stringify({ keyword: S.keyword, nKeyword: S.nKeyword, nQuery: S.nQuery })) } catch (e) { }
     try { localStorage.setItem('naf_pv_' + S.uid, '1') } catch (e) { }
-    setupIframeListener(); setupEngagementTracking(); collectBehaviorMetrics();
     setupBeacon();
 
     var vd = analyzeVisitHistory();
     var cr = calculateScore(vd); S.score = cr.score; S.scoreReasons = cr.reasons;
+    // V21: 클라이언트 점수 기반 즉시 차단 삭제. 서버에서 판정
 
-    // V38: VISIT 즉시 전송 (IP 조회/서버 체크 전 — 보라웨어와 동일 타이밍)
+    // VISIT dedup (sessionStorage — 탭 닫으면 자동 삭제)
     var vk = 'naf_vt_' + S.uid + '_' + S.sessionStart;
     if (!sessionStorage.getItem(vk) && S.uid) { sessionStorage.setItem(vk, '1'); sendToServer({ action: 'VISIT' }) }
     setupSPAListener();
-
-    // V38: 비동기 IP 조회 → IP 변경 시 VISIT_PATCH
-    var preIP = S.ip;
-    try { await fetchIPInfo(); } catch (e) {}
-    if (S.ip && S.ip !== preIP) { sendToServer({ action: 'VISIT_PATCH' }) }
-
-    // V38: 서버 UID 체크 (비동기, 차단 시 즉시 화면)
-    var srvBlocked = false;
-    try { srvBlocked = await checkServerUID(S.uid, S.ip); } catch (e) {}
-    if (!S.isWhitelisted && srvBlocked) { S.isBlocked = true; persistBlock(S.uid); renderAccessDenied(); return }
 
     // V21: NO_INTERACTION — 점수 누적만 유지, 차단 삭제
     setTimeout(function () {
