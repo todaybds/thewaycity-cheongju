@@ -52,6 +52,22 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
+<!-- Meta Pixel -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '632260369616595');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=632260369616595&ev=PageView&noscript=1"
+/></noscript>
 </head>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@1.0/nanumsquare.css">
 <link rel="preconnect" href="https://fonts.gstatic.com">
@@ -488,6 +504,7 @@ function submitForm() {
 	localStorage.setItem('last_reg_key', _regKey);
 	localStorage.setItem('last_reg_time', String(Date.now()));
 	try { window.postMessage({ type: 'DB_REGISTERED', action: 'formSubmitted' }, '*'); } catch(e) {}
+	try { if(typeof fbq !== 'undefined') { var _ph = document.getElementById('phone').value.replace(/[^0-9]/g,''); var _fn = document.getElementById('name').value.trim(); fbq('init', '632260369616595', { ph: _ph, fn: _fn }); var _eid = Date.now() + '_' + Math.random().toString(36).substr(2,9); fbq('track', 'Lead', { value: 0.00, currency: 'KRW' }, { eventID: _eid }); } } catch(e) {}
 	try { if(window.wcs) { var _conv = {}; _conv.type = 'lead'; wcs.trans(_conv); } } catch(e) {}
 
 	alert('관심고객 등록이 완료되었습니다.');
