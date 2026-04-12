@@ -1,5 +1,9 @@
-/* 부정클릭 방지 시스템 V40 — Vercel 배포용 (antifraud.js) */
-/* V40 변경사항 (2026-04-12): UTM 파라미터 네이버 광고 감지
+/* 부정클릭 방지 시스템 V41 — Vercel 배포용 (antifraud.js) */
+/* V41 변경사항 (2026-04-12): 차단 재방문 접속로그 기록
+ *  1. 차단된 사용자가 네이버 광고 재클릭 시에도 VISIT 전송 (blockedRevisit 플래그)
+ *  2. 네이버 클릭 vs 접속로그 괴리 해소 + 무효클릭 신고 증거 확보
+ *
+ * V40 변경사항 (2026-04-12): UTM 파라미터 네이버 광고 감지
  *  1. extractNaverAdParams에 UTM 기반 감지 추가 (utm_source=naver + utm_medium=sa/cpc/search)
  *  2. UTM만 설정된 캠페인에서도 광고 유입 정상 추적 (접속로그 누락 해결)
  *
@@ -480,7 +484,12 @@ async function initAntifraud() {
     try {
       srvBlocked = await checkServerUID(S.uid, S.ip);
     } catch (e) {}
-    if (!S.isWhitelisted && srvBlocked) { S.isBlocked = true; persistBlock(S.uid); renderAccessDenied(); return }
+    if (!S.isWhitelisted && srvBlocked) {
+        S.isBlocked = true; persistBlock(S.uid);
+        // V41: 차단 재방문도 접속로그에 기록 (네이버 클릭 비용은 이미 발생 — 증거 확보)
+        sendToServer({ action: 'VISIT', blockedRevisit: true });
+        renderAccessDenied(); return
+    }
 
     setupIframeListener(); setupEngagementTracking(); collectBehaviorMetrics();
     S.sessionStart = Date.now();
