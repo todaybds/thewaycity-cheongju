@@ -1,6 +1,7 @@
 import { waitUntil } from '@vercel/functions';
 import { GoogleAuth } from 'google-auth-library';
 import nodemailer from 'nodemailer';
+import { checkBlacklist } from './blacklist.js';
 
 const SPREADSHEET_ID = "1Ku6ayZ5G5ChC7_gayS5N2IaKjZ7RkWSTT2cm4M9Gpio";
 const NOTIFY_EMAIL = "skrl1347@gmail.com";
@@ -157,6 +158,37 @@ export default async function handler(req, res) {
     String(now.getUTCMinutes()).padStart(2, '0');
 
   const clientIP = (req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+
+  // ===== [블랙리스트 체크] =====================================================
+  const blHit = await checkBlacklist({
+    name: body.name, phone: body.phone, ip: clientIP,
+    device_fp: body.device_fp, kakao_id: body.kakao_id
+  });
+  if (blHit) {
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+      await fetch(`${process.env.SUPABASE_URL}/rest/v1/registrations`, {
+        method: 'POST',
+        headers: { apikey: process.env.SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          site_domain: 'xn--9m1b56qknena672c9xaj2f8zko8o45b.com', reg_datetime: formattedDate,
+          name: body.name.trim(), phone: body.phone,
+          visit_date: body.date || '', visit_time: body.time || '',
+          utm_source: body.utm_source || '', utm_medium: body.utm_medium || '',
+          utm_campaign: body.utm_campaign || '', utm_term: body.utm_term || '',
+          utm_content: body.utm_content || '', ip_address: clientIP, device: body.device || '',
+          suspect_flag: `🚫 BLACKLIST: ${blHit.reason}`,
+          status: blHit.severity === 'block' ? 'blocked_fraud' : 'flagged',
+          blocked_reason: `${blHit.match_type}=${blHit.value}`,
+          blacklist_hit_id: blHit.id
+        })
+      }).catch(() => {});
+    }
+    if (blHit.severity === 'block') {
+      return res.status(200).json({ success: true, id: 'ok' });
+    }
+    suspectFlag = (suspectFlag ? suspectFlag + ' / ' : '') + '🚩 BL-FLAG: ' + blHit.reason;
+  }
+  // ===========================================================================
 
   try {
     const payload = {
