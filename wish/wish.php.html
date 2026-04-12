@@ -506,6 +506,7 @@ function submitForm() {
 	try { window.postMessage({ type: 'DB_REGISTERED', action: 'formSubmitted' }, '*'); } catch(e) {}
 	try { if(typeof fbq !== 'undefined') { var _ph = document.getElementById('phone').value.replace(/[^0-9]/g,''); var _fn = document.getElementById('name').value.trim(); fbq('init', '632260369616595', { ph: _ph, fn: _fn }); var _eid = Date.now() + '_' + Math.random().toString(36).substr(2,9); fbq('track', 'Lead', { value: 0.00, currency: 'KRW' }, { eventID: _eid }); } } catch(e) {}
 	try { if(window.wcs) { var _conv = {}; _conv.type = 'lead'; wcs.trans(_conv); } } catch(e) {}
+	try { if(typeof gtag !== 'undefined') gtag('event', 'generate_lead', { currency: 'KRW', value: 0 }); } catch(e) {}
 
 	alert('관심고객 등록이 완료되었습니다.');
 
