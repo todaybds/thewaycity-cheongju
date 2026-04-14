@@ -510,7 +510,7 @@ function submitForm() {
 	localStorage.setItem('last_reg_key', _regKey);
 	localStorage.setItem('last_reg_time', String(Date.now()));
 	try { window.postMessage({ type: 'DB_REGISTERED', action: 'formSubmitted' }, '*'); } catch(e) {}
-	try { if(typeof fbq !== 'undefined') { var _ph = document.getElementById('phone').value.replace(/[^0-9]/g,''); var _fn = document.getElementById('name').value.trim(); fbq('init', '632260369616595', { ph: _ph, fn: _fn }); fbq('track', 'Lead', { value: 0.00, currency: 'KRW' }, { eventID: _eid }); } } catch(e) {}
+	try { if(typeof fbq !== 'undefined') { var _ph = document.getElementById('phone').value.replace(/[^0-9]/g,''); var _fn = document.getElementById('name').value.trim(); fbq('init', '632260369616595', { ph: _ph, fn: _fn }); fbq('track', 'Lead', { value: 0.00, currency: 'KRW' }, { eventID: _eid }); } } catch(e) {} try { var _gu='https://script.google.com/macros/s/AKfycbwEENIblM0NCX7uQn-zVOY1IcwNj7aboQw98ZVWJ1dmrwDIs3S4QgF2Gv3smBhaIQxmqQ/exec'; var _fbp=(document.cookie.match(/_fbp=([^;]+)/)||[])[1]||''; var _fbc=(document.cookie.match(/_fbc=([^;]+)/)||[])[1]||''; fetch(_gu,{method:'POST',headers:{'Content-Type':'text/plain'},keepalive:true,body:JSON.stringify({action:'META_CAPI_LEAD',pixel:'632260369616595',name:_fn,phone:_ph,fbp:_fbp,fbc:_fbc,eventID:_eid,url:location.href,ua:navigator.userAgent})}); } catch(e) {}
 	try { if(window.wcs) { var _conv = {}; _conv.type = 'lead'; wcs.trans(_conv); } } catch(e) {}
 	try { if(typeof gtag !== 'undefined') gtag('event', 'generate_lead', { currency: 'KRW', value: 0 }); } catch(e) {}
 
