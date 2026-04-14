@@ -1,0 +1,27 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# AI 검색 명시 허용 (LLM 학습/실시간 검색용)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+Sitemap: https://www.xn--9m1b56qknena672c9xaj2f8zko8o45b.com/sitemap.xml
