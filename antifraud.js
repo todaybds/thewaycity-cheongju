@@ -48,7 +48,7 @@ var G = 'https://script.google.com/macros/s/AKfycbwEENIblM0NCX7uQn-zVOY1IcwNj7ab
 var CONFIG = { GAS_URL: G, FCS: 30, SWM: 30, SCL: 2, EDM: 10000 };  // V23: STH 삭제 (클라이언트 즉시 차단 삭제됨, 미사용 dead code)
 var W = { BH: 50, VPN: 80, FC: 15, SV: 30, NI: 10 }; // V23: FC 40→15, SV 60→30 (refactor-instructions 준수 — 오탐 감소 우선)
 var S = { uid: '', ip: '', isp: '', isVPN: false, orgName: '', asn: '', country: '', deviceType: '', deviceModel: '', siteDomain: '', adRank: '', adProduct: '', isNaverAd: false, pageViews: 1, sessionStart: Date.now(), engagements: 0, isWhitelisted: false, isBlocked: false, score: 0, scoreReasons: [], keyword: '', iframeActive: false, nQuery: '', nKeyword: '', referrer: '', wlNonce: '', wlNonceTime: 0 };
-var BM = { scrollDepth: 0, scrollSpeeds: [], touchCount: 0, firstInteractMs: 0, formFocusMs: 0, formFillStart: 0, formFillMs: 0, idleSegments: 0, mouseMoveDist: 0, lastActivityMs: 0, telClicked: false };
+var BM = { scrollDepth: 0, scrollSpeeds: [], touchCount: 0, firstInteractMs: 0, formFocusMs: 0, formFillStart: 0, formFillMs: 0, idleSegments: 0, mouseMoveDist: 0, lastActivityMs: 0, telClicked: false, mousePts: [], clickTs: [], mouseStraightLen: 0 };
 
 // ── UID 생성 (결정론적 디바이스 핑거프린트) ──
 // V25 정규 사양: Canvas(300x70 gradient) + WebGL(vendor+renderer+version+shading)
@@ -310,12 +310,22 @@ function collectBehaviorMetrics() {
         window.addEventListener(ev, function (e) {
             // V25: isTrusted 검증 — 합성 이벤트(봇)는 isTrusted=false
             if (e && e.isTrusted === false) { S.score += 100; S.scoreReasons.push('SYNTHETIC_EVENT:' + ev) }
-            BM.touchCount++; if (!BM.firstInteractMs) BM.firstInteractMs = Date.now() - S.sessionStart; BM.lastActivityMs = Date.now()
+            BM.touchCount++; if (!BM.firstInteractMs) BM.firstInteractMs = Date.now() - S.sessionStart; BM.lastActivityMs = Date.now();
+            // V76: 행동 바이오메트릭스 - 클릭/탭 타임스탬프 (최대 10개)
+            BM.clickTs.push(Date.now());
+            if (BM.clickTs.length > 10) BM.clickTs.shift();
         }, { passive: true });
     });
 
     window.addEventListener('mousemove', function (e) {
         if (lastMouseX || lastMouseY) BM.mouseMoveDist += Math.sqrt(Math.pow(e.clientX - lastMouseX, 2) + Math.pow(e.clientY - lastMouseY, 2));
+        // V76: 마우스 경로 샘플링 (최대 30점, 200ms 간격)
+        var _nowMs = Date.now();
+        if (!BM._lastMouseSampleMs || _nowMs - BM._lastMouseSampleMs > 200) {
+            BM.mousePts.push([e.clientX, e.clientY, _nowMs]);
+            if (BM.mousePts.length > 30) BM.mousePts.shift();
+            BM._lastMouseSampleMs = _nowMs;
+        }
         lastMouseX = e.clientX; lastMouseY = e.clientY; BM.lastActivityMs = Date.now();
     }, { passive: true });
 
@@ -460,8 +470,43 @@ function buildPayload() {
         scoreReasons: S.scoreReasons.join('|'), isWhitelisted: S.isWhitelisted, telClicked: BM.telClicked, hiddenDevice: !!S._hiddenDevice,
         orgName: S.orgName || '', asn: S.asn || '', country: S.country || '',
         sessionStart: S.sessionStart, timestamp: new Date().toISOString(),
-        nQuery: S.nQuery, nKeyword: S.nKeyword, referrer: S.referrer || ''
+        nQuery: S.nQuery, nKeyword: S.nKeyword, referrer: S.referrer || '',
+        humanSig: buildHumanSig()
     };
+}
+
+// V76: 행동 바이오메트릭스 서명 생성 (마우스 곡선성 + 클릭 간격 분산)
+function buildHumanSig() {
+    try {
+        var pts = BM.mousePts || [];
+        var curvRatio = 0;
+        if (pts.length >= 3) {
+            var pathLen = 0;
+            for (var i = 1; i < pts.length; i++) {
+                pathLen += Math.sqrt(Math.pow(pts[i][0]-pts[i-1][0],2) + Math.pow(pts[i][1]-pts[i-1][1],2));
+            }
+            var straight = Math.sqrt(Math.pow(pts[pts.length-1][0]-pts[0][0],2) + Math.pow(pts[pts.length-1][1]-pts[0][1],2));
+            curvRatio = straight > 5 ? (pathLen / straight) : 0;  // >1.2 = 사람, ~1.0 = 봇 직선
+        }
+        var cts = BM.clickTs || [];
+        var gaps = [];
+        for (var j = 1; j < cts.length; j++) gaps.push(cts[j] - cts[j-1]);
+        var gapMean = 0, gapStd = 0;
+        if (gaps.length > 0) {
+            gapMean = gaps.reduce(function(a,b){return a+b},0) / gaps.length;
+            var sq = gaps.map(function(g){ return (g-gapMean)*(g-gapMean); });
+            gapStd = Math.sqrt(sq.reduce(function(a,b){return a+b},0) / gaps.length);
+        }
+        return {
+            curvRatio: +curvRatio.toFixed(2),
+            mousePts: pts.length,
+            clicks: cts.length,
+            gapStd: Math.round(gapStd),
+            touches: BM.touchCount || 0,
+            scrollSamples: (BM.scrollSpeeds || []).length,
+            mouseDist: Math.round(BM.mouseMoveDist || 0)
+        };
+    } catch(e) { return { err: 1 }; }
 }
 // V26: 재시도 메커니즘 — VISIT/BLOCK 등 중요 액션 유실 방지
 function sendToServer(x, _retry) {
