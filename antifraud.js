@@ -48,7 +48,16 @@ var G = 'https://script.google.com/macros/s/AKfycbwEENIblM0NCX7uQn-zVOY1IcwNj7ab
 var CONFIG = { GAS_URL: G, FCS: 30, SWM: 30, SCL: 2, EDM: 10000 };  // V23: STH 삭제 (클라이언트 즉시 차단 삭제됨, 미사용 dead code)
 var W = { BH: 50, VPN: 80, FC: 15, SV: 30, NI: 10 }; // V23: FC 40→15, SV 60→30 (refactor-instructions 준수 — 오탐 감소 우선)
 var S = { uid: '', ip: '', isp: '', isVPN: false, orgName: '', asn: '', country: '', deviceType: '', deviceModel: '', siteDomain: '', adRank: '', adProduct: '', isNaverAd: false, pageViews: 1, sessionStart: Date.now(), engagements: 0, isWhitelisted: false, isBlocked: false, score: 0, scoreReasons: [], keyword: '', iframeActive: false, nQuery: '', nKeyword: '', referrer: '', wlNonce: '', wlNonceTime: 0 };
-var BM = { scrollDepth: 0, scrollSpeeds: [], touchCount: 0, firstInteractMs: 0, formFocusMs: 0, formFillStart: 0, formFillMs: 0, idleSegments: 0, mouseMoveDist: 0, lastActivityMs: 0, telClicked: false, mousePts: [], clickTs: [], mouseStraightLen: 0 };
+var BM = { scrollDepth: 0, scrollSpeeds: [], touchCount: 0, firstInteractMs: 0, formFocusMs: 0, formFillStart: 0, formFillMs: 0, idleSegments: 0, mouseMoveDist: 0, lastActivityMs: 0, telClicked: false, mousePts: [], clickTs: [], mouseStraightLen: 0, patchSeq: [], visitedPaths: {} };
+// V77: 4x6 화면 패치 그리드 (eBay MMBT 방식, 디바이스 무관)
+function _patchIndex(x, y) {
+    try {
+        var w = Math.max(window.innerWidth || 1, 1), h = Math.max(window.innerHeight || 1, 1);
+        var ix = Math.min(3, Math.max(0, Math.floor(x / w * 4)));
+        var iy = Math.min(5, Math.max(0, Math.floor(y / h * 6)));
+        return iy * 4 + ix;
+    } catch(e) { return -1; }
+}
 
 // ── UID 생성 (결정론적 디바이스 핑거프린트) ──
 // V25 정규 사양: Canvas(300x70 gradient) + WebGL(vendor+renderer+version+shading)
@@ -324,6 +333,12 @@ function collectBehaviorMetrics() {
         if (!BM._lastMouseSampleMs || _nowMs - BM._lastMouseSampleMs > 200) {
             BM.mousePts.push([e.clientX, e.clientY, _nowMs]);
             if (BM.mousePts.length > 30) BM.mousePts.shift();
+            // V77: 패치 인덱스 시퀀스 추가 (디바이스 무관)
+            var _pi = _patchIndex(e.clientX, e.clientY);
+            if (_pi >= 0 && (BM.patchSeq.length === 0 || BM.patchSeq[BM.patchSeq.length-1] !== _pi)) {
+                BM.patchSeq.push(_pi);
+                if (BM.patchSeq.length > 50) BM.patchSeq.shift();
+            }
             BM._lastMouseSampleMs = _nowMs;
         }
         lastMouseX = e.clientX; lastMouseY = e.clientY; BM.lastActivityMs = Date.now();
@@ -497,6 +512,24 @@ function buildHumanSig() {
             var sq = gaps.map(function(g){ return (g-gapMean)*(g-gapMean); });
             gapStd = Math.sqrt(sq.reduce(function(a,b){return a+b},0) / gaps.length);
         }
+        // V77: 패치 시퀀스 분석 (eBay MMBT 방식)
+        var pSeq = BM.patchSeq || [];
+        var uniquePatches = {};
+        for (var k = 0; k < pSeq.length; k++) uniquePatches[pSeq[k]] = true;
+        var uniquePatchCount = Object.keys(uniquePatches).length;
+        // V77: 페이지 탐색 엔트로피
+        var paths = BM.visitedPaths || {};
+        var pathKeys = Object.keys(paths);
+        var uniquePathCount = pathKeys.length;
+        var totalPV = 0;
+        for (var pk = 0; pk < pathKeys.length; pk++) totalPV += paths[pathKeys[pk]];
+        var pathEntropy = 0;
+        if (totalPV > 0) {
+            for (var pk2 = 0; pk2 < pathKeys.length; pk2++) {
+                var p = paths[pathKeys[pk2]] / totalPV;
+                if (p > 0) pathEntropy -= p * Math.log(p) / Math.log(2);
+            }
+        }
         return {
             curvRatio: +curvRatio.toFixed(2),
             mousePts: pts.length,
@@ -504,7 +537,11 @@ function buildHumanSig() {
             gapStd: Math.round(gapStd),
             touches: BM.touchCount || 0,
             scrollSamples: (BM.scrollSpeeds || []).length,
-            mouseDist: Math.round(BM.mouseMoveDist || 0)
+            mouseDist: Math.round(BM.mouseMoveDist || 0),
+            patchSeqLen: pSeq.length,
+            uniquePatches: uniquePatchCount,
+            uniquePaths: uniquePathCount,
+            pathEntropy: +pathEntropy.toFixed(2)
         };
     } catch(e) { return { err: 1 }; }
 }
@@ -630,7 +667,7 @@ async function initAntifraud() {
 
     // VISIT dedup (sessionStorage — 탭 닫으면 자동 삭제)
     var vk = 'naf_vt_' + S.uid + '_' + S.sessionStart;
-    if (!sessionStorage.getItem(vk) && S.uid) { sessionStorage.setItem(vk, '1'); sendToServer({ action: 'VISIT' }) }
+    if (!sessionStorage.getItem(vk) && S.uid) { sessionStorage.setItem(vk, '1'); try { BM.visitedPaths[location.pathname || '/'] = (BM.visitedPaths[location.pathname || '/']||0) + 1; } catch(e) {} sendToServer({ action: 'VISIT' }) }
     setupSPAListener();
 
     // V21: NO_INTERACTION — 점수 누적만 유지, 차단 삭제
@@ -649,7 +686,7 @@ async function initAntifraud() {
 function setupSPAListener() {
     if (window._nafSPA) return; window._nafSPA = 1;
     var lu = location.href;
-    function on() { if (location.href === lu) return; lu = location.href; S.pageViews++; try { localStorage.setItem('naf_pv_' + S.uid, String(S.pageViews)) } catch (e) { } sendToServer({ action: 'PAGEVIEW' }) }
+    function on() { if (location.href === lu) return; lu = location.href; S.pageViews++; try { localStorage.setItem('naf_pv_' + S.uid, String(S.pageViews)) } catch (e) { } try { BM.visitedPaths[location.pathname || '/'] = (BM.visitedPaths[location.pathname || '/']||0) + 1; } catch(e) {} sendToServer({ action: 'PAGEVIEW' }) }
     var _p = history.pushState, _r = history.replaceState;
     history.pushState = function () { _p.apply(this, arguments); on() };
     history.replaceState = function () { _r.apply(this, arguments); on() };
