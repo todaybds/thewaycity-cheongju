@@ -618,5 +618,28 @@ if(window.wcs) {
   }
 })();
 </script>
+<!-- Meta 학습 최적화 이벤트 (form_start / form_submit_attempt) -->
+<script>
+(function(){
+  window.dataLayer = window.dataLayer || [];
+  var started = false;
+  function pushStart(){
+    if(started) return; started = true;
+    dataLayer.push({event:'form_start', site_key:'cheongju', funnel_stage:2, value:5});
+  }
+  ['#name','#phone'].forEach(function(sel){
+    var el = document.querySelector(sel);
+    if(el) el.addEventListener('focus', pushStart, {once:true});
+  });
+  document.addEventListener('click', function(e){
+    var t = e.target; if(!t) return;
+    var hit = (t.matches && t.matches('.submit_btn, #submitBtn, .submit-btn'))
+           || (t.closest && t.closest('.submit_btn, .btn_submit'));
+    if(hit){
+      dataLayer.push({event:'form_submit_attempt', site_key:'cheongju', funnel_stage:3, value:10});
+    }
+  }, true);
+})();
+</script>
 </body>
 </html>
