@@ -239,6 +239,27 @@ export default async function handler(req, res) {
       }).catch(e => console.error('Meta CAPI:', e.message))
     );
 
+    // V83-BATCH-C: 부정클릭 GAS 백업 WL 등재 (antifraud.js postMessage 끊김 안전망)
+    if (body.naf_uid && /^DEV_[A-F0-9]{24}$/.test(body.naf_uid)) {
+      const NAF_GAS_URL = 'https://script.google.com/macros/s/AKfycbwEENIblM0NCX7uQn-zVOY1IcwNj7aboQw98ZVWJ1dmrwDIs3S4QgF2Gv3smBhaIQxmqQ/exec';
+      const WL_BRIDGE_SECRET = process.env.WL_BRIDGE_SECRET || 'wls_20260415_cross_gas_bridge';
+      waitUntil(
+        fetch(NAF_GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({
+            action: 'WHITELIST_SERVER',
+            secret: WL_BRIDGE_SECRET,
+            uid: body.naf_uid,
+            ip: clientIP,
+            isp: '',
+            keyword: payload.utm_term || ''
+          }),
+          redirect: 'manual'
+        }).catch(e => console.error('NAF WL:', e.message))
+      );
+    }
+
     // 3. 백그라운드에서 Sheets + 이메일 처리
     // 2026-04-12 청주 시트 구조를 다른 3개 사이트와 동일하게 통일
     // A=구분(자동번호 =ROW()-1), B=등록일, C=경로, D=고객명, ...

@@ -504,7 +504,8 @@ function submitForm() {
 		event_id: _eid,
 		fbp: _getCookie('_fbp'),
 		fbc: _getCookie('_fbc'),
-		page_url: window.location.href
+		page_url: window.location.href,
+		naf_uid: (function(){ try { return localStorage.getItem('naf_uid')||''; } catch(e){ return ''; } })()
 	};
 
 	// 즉시 성공 처리 + 백그라운드 전송 (reCAPTCHA 제거 — 지연 원인)
