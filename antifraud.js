@@ -48,6 +48,17 @@ var G = 'https://script.google.com/macros/s/AKfycbwEENIblM0NCX7uQn-zVOY1IcwNj7ab
 var CONFIG = { GAS_URL: G, FCS: 30, SWM: 30, SCL: 2, EDM: 10000 };  // V23: STH 삭제 (클라이언트 즉시 차단 삭제됨, 미사용 dead code)
 var W = { BH: 50, VPN: 80, FC: 15, SV: 30, NI: 10 }; // V23: FC 40→15, SV 60→30 (refactor-instructions 준수 — 오탐 감소 우선)
 var S = { uid: '', ip: '', isp: '', isVPN: false, orgName: '', asn: '', country: '', deviceType: '', deviceModel: '', siteDomain: '', adRank: '', adProduct: '', isNaverAd: false, pageViews: 1, sessionStart: Date.now(), engagements: 0, isWhitelisted: false, isBlocked: false, score: 0, scoreReasons: [], keyword: '', iframeActive: false, nQuery: '', nKeyword: '', referrer: '', wlNonce: '', wlNonceTime: 0 };
+// V85.19 (2026-04-26): sessionStorage 기반 wlNonce 영속화 — 페이지 새로고침/이동 시 closure 휘발 보완
+//   배경: VISIT 응답 도착 전 폼 제출 또는 같은 세션 새 페이지 로드 시 S.wlNonce 빈 채로 시작 → 폼 제출 가드 발동
+//   초기화 시점에 25분 이내 캐시된 nonce 복원 (서버 30분 TTL - 5분 여유)
+try {
+    var _nafCachedNonce = sessionStorage.getItem('naf_wlNonce') || '';
+    var _nafCachedNonceTime = parseInt(sessionStorage.getItem('naf_wlNonceTime') || '0', 10);
+    if (_nafCachedNonce && _nafCachedNonceTime && Date.now() - _nafCachedNonceTime < 1500000) {
+        S.wlNonce = _nafCachedNonce;
+        S.wlNonceTime = _nafCachedNonceTime;
+    }
+} catch (e) {}
 var BM = { scrollDepth: 0, scrollSpeeds: [], touchCount: 0, firstInteractMs: 0, formFocusMs: 0, formFillStart: 0, formFillMs: 0, idleSegments: 0, mouseMoveDist: 0, lastActivityMs: 0, telClicked: false, mousePts: [], clickTs: [], mouseStraightLen: 0, patchSeq: [], visitedPaths: {} };
 // V77: 4x6 화면 패치 그리드 (eBay MMBT 방식, 디바이스 무관)
 function _patchIndex(x, y) {
@@ -403,8 +414,9 @@ function setupIframeListener() {
         if (allowed.indexOf(e.origin) === -1) return;
         var d = e.data; if (!d) return;
         if (d.type === 'DB_REGISTERED' || d.action === 'GTM_LEAD_COMPLETE' || d.action === 'formSubmitted') {
-            // V32: nonce 없으면 WHITELIST 전송 보류 (서버에서도 거부하지만 불필요한 요청 방지)
-            if (!S.wlNonce) return;
+            // V85.19 (2026-04-26): V32 가드 제거 — 서버 V49에서 nonce 미일치 시 경고 로그만 (실고객 보호 우선).
+            //   VISIT 응답 지연/실패로 S.wlNonce 빈 채여도 빈 값으로 WHITELIST 발사 → 서버에서 검증 완화로 등재 OK.
+            //   배경: 04-22 이후 4사이트 wl_nonce 미수신 케이스에서 폼 제출자 WL 등재 0건 사고.
             S.isWhitelisted = true; S.engagements += 2;
             persistWhitelist(S.uid);
             // V27: 화이트리스트 등록 시 로컬 차단 캐시 제거 (재방문 시 차단 화면 방지)
@@ -557,7 +569,11 @@ function sendToServer(x, _retry) {
     .then(function(d) {
         if (d && d.error === 'rate_limit' && retries < 2) { setTimeout(function() { sendToServer(x, retries + 1) }, 2000 * (retries + 1)); }
         // V30: VISIT 응답에서 wl_nonce 추출 (WHITELIST 검증용)
-        if (d && d.wl_nonce) { S.wlNonce = d.wl_nonce; S.wlNonceTime = Date.now(); }
+        if (d && d.wl_nonce) {
+            S.wlNonce = d.wl_nonce; S.wlNonceTime = Date.now();
+            // V85.19: sessionStorage에 저장 — 같은 세션 새 페이지 로드 시 복원
+            try { sessionStorage.setItem('naf_wlNonce', d.wl_nonce); sessionStorage.setItem('naf_wlNonceTime', String(S.wlNonceTime)); } catch (e) {}
+        }
         // V29: PAGEVIEW/VISIT 응답에서 차단 감지 시 즉시 차단 화면 표시
         if (d && d.blocked && !S.isWhitelisted && !S.isBlocked) {
             S.isBlocked = true; persistBlock(S.uid); renderAccessDenied();
