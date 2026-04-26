@@ -48,18 +48,16 @@ var G = 'https://script.google.com/macros/s/AKfycbwEENIblM0NCX7uQn-zVOY1IcwNj7ab
 var CONFIG = { GAS_URL: G, FCS: 30, SWM: 30, SCL: 2, EDM: 10000 };  // V23: STH 삭제 (클라이언트 즉시 차단 삭제됨, 미사용 dead code)
 var W = { BH: 50, VPN: 80, FC: 15, SV: 30, NI: 10 }; // V23: FC 40→15, SV 60→30 (refactor-instructions 준수 — 오탐 감소 우선)
 var S = { uid: '', ip: '', isp: '', isVPN: false, orgName: '', asn: '', country: '', deviceType: '', deviceModel: '', siteDomain: '', adRank: '', adProduct: '', isNaverAd: false, pageViews: 1, sessionStart: Date.now(), engagements: 0, isWhitelisted: false, isBlocked: false, score: 0, scoreReasons: [], keyword: '', iframeActive: false, nQuery: '', nKeyword: '', referrer: '', wlNonce: '', wlNonceTime: 0 };
-// V85.19 (2026-04-26): sessionStorage 기반 wlNonce 영속화 — 페이지 새로고침/이동 시 closure 휘발 보완
-//   배경: VISIT 응답 도착 전 폼 제출 또는 같은 세션 새 페이지 로드 시 S.wlNonce 빈 채로 시작 → 폼 제출 가드 발동
-//   초기화 시점에 25분 이내 캐시된 nonce 복원 (서버 30분 TTL - 5분 여유)
-try {
-    var _nafCachedNonce = sessionStorage.getItem('naf_wlNonce') || '';
-    var _nafCachedNonceTime = parseInt(sessionStorage.getItem('naf_wlNonceTime') || '0', 10);
-    if (_nafCachedNonce && _nafCachedNonceTime && Date.now() - _nafCachedNonceTime < 1500000) {
-        S.wlNonce = _nafCachedNonce;
-        S.wlNonceTime = _nafCachedNonceTime;
-    }
-} catch (e) {}
-var BM = { scrollDepth: 0, scrollSpeeds: [], touchCount: 0, firstInteractMs: 0, formFocusMs: 0, formFillStart: 0, formFillMs: 0, idleSegments: 0, mouseMoveDist: 0, lastActivityMs: 0, telClicked: false };
+var BM = { scrollDepth: 0, scrollSpeeds: [], touchCount: 0, firstInteractMs: 0, formFocusMs: 0, formFillStart: 0, formFillMs: 0, idleSegments: 0, mouseMoveDist: 0, lastActivityMs: 0, telClicked: false, mousePts: [], clickTs: [], mouseStraightLen: 0, patchSeq: [], visitedPaths: {} };
+// V77: 4x6 화면 패치 그리드 (eBay MMBT 방식, 디바이스 무관)
+function _patchIndex(x, y) {
+    try {
+        var w = Math.max(window.innerWidth || 1, 1), h = Math.max(window.innerHeight || 1, 1);
+        var ix = Math.min(3, Math.max(0, Math.floor(x / w * 4)));
+        var iy = Math.min(5, Math.max(0, Math.floor(y / h * 6)));
+        return iy * 4 + ix;
+    } catch(e) { return -1; }
+}
 
 // ── UID 생성 (결정론적 디바이스 핑거프린트) ──
 // V25 정규 사양: Canvas(300x70 gradient) + WebGL(vendor+renderer+version+shading)
@@ -321,12 +319,28 @@ function collectBehaviorMetrics() {
         window.addEventListener(ev, function (e) {
             // V25: isTrusted 검증 — 합성 이벤트(봇)는 isTrusted=false
             if (e && e.isTrusted === false) { S.score += 100; S.scoreReasons.push('SYNTHETIC_EVENT:' + ev) }
-            BM.touchCount++; if (!BM.firstInteractMs) BM.firstInteractMs = Date.now() - S.sessionStart; BM.lastActivityMs = Date.now()
+            BM.touchCount++; if (!BM.firstInteractMs) BM.firstInteractMs = Date.now() - S.sessionStart; BM.lastActivityMs = Date.now();
+            // V76: 행동 바이오메트릭스 - 클릭/탭 타임스탬프 (최대 10개)
+            BM.clickTs.push(Date.now());
+            if (BM.clickTs.length > 10) BM.clickTs.shift();
         }, { passive: true });
     });
 
     window.addEventListener('mousemove', function (e) {
         if (lastMouseX || lastMouseY) BM.mouseMoveDist += Math.sqrt(Math.pow(e.clientX - lastMouseX, 2) + Math.pow(e.clientY - lastMouseY, 2));
+        // V76: 마우스 경로 샘플링 (최대 30점, 200ms 간격)
+        var _nowMs = Date.now();
+        if (!BM._lastMouseSampleMs || _nowMs - BM._lastMouseSampleMs > 200) {
+            BM.mousePts.push([e.clientX, e.clientY, _nowMs]);
+            if (BM.mousePts.length > 30) BM.mousePts.shift();
+            // V77: 패치 인덱스 시퀀스 추가 (디바이스 무관)
+            var _pi = _patchIndex(e.clientX, e.clientY);
+            if (_pi >= 0 && (BM.patchSeq.length === 0 || BM.patchSeq[BM.patchSeq.length-1] !== _pi)) {
+                BM.patchSeq.push(_pi);
+                if (BM.patchSeq.length > 50) BM.patchSeq.shift();
+            }
+            BM._lastMouseSampleMs = _nowMs;
+        }
         lastMouseX = e.clientX; lastMouseY = e.clientY; BM.lastActivityMs = Date.now();
     }, { passive: true });
 
@@ -389,9 +403,8 @@ function setupIframeListener() {
         if (allowed.indexOf(e.origin) === -1) return;
         var d = e.data; if (!d) return;
         if (d.type === 'DB_REGISTERED' || d.action === 'GTM_LEAD_COMPLETE' || d.action === 'formSubmitted') {
-            // V85.19 (2026-04-26): V32 가드 제거 — 서버 V49에서 nonce 미일치 시 경고 로그만 (실고객 보호 우선).
-            //   VISIT 응답 지연/실패로 S.wlNonce 빈 채여도 빈 값으로 WHITELIST 발사 → 서버에서 검증 완화로 등재 OK.
-            //   배경: 04-22 이후 4사이트 wl_nonce 미수신 케이스에서 폼 제출자 WL 등재 0건 사고.
+            // V32: nonce 없으면 WHITELIST 전송 보류 (서버에서도 거부하지만 불필요한 요청 방지)
+            if (!S.wlNonce) return;
             S.isWhitelisted = true; S.engagements += 2;
             persistWhitelist(S.uid);
             // V27: 화이트리스트 등록 시 로컬 차단 캐시 제거 (재방문 시 차단 화면 방지)
@@ -472,8 +485,65 @@ function buildPayload() {
         scoreReasons: S.scoreReasons.join('|'), isWhitelisted: S.isWhitelisted, telClicked: BM.telClicked, hiddenDevice: !!S._hiddenDevice,
         orgName: S.orgName || '', asn: S.asn || '', country: S.country || '',
         sessionStart: S.sessionStart, timestamp: new Date().toISOString(),
-        nQuery: S.nQuery, nKeyword: S.nKeyword, referrer: S.referrer || ''
+        nQuery: S.nQuery, nKeyword: S.nKeyword, referrer: S.referrer || '',
+        humanSig: buildHumanSig()
     };
+}
+
+// V76: 행동 바이오메트릭스 서명 생성 (마우스 곡선성 + 클릭 간격 분산)
+function buildHumanSig() {
+    try {
+        var pts = BM.mousePts || [];
+        var curvRatio = 0;
+        if (pts.length >= 3) {
+            var pathLen = 0;
+            for (var i = 1; i < pts.length; i++) {
+                pathLen += Math.sqrt(Math.pow(pts[i][0]-pts[i-1][0],2) + Math.pow(pts[i][1]-pts[i-1][1],2));
+            }
+            var straight = Math.sqrt(Math.pow(pts[pts.length-1][0]-pts[0][0],2) + Math.pow(pts[pts.length-1][1]-pts[0][1],2));
+            curvRatio = straight > 5 ? (pathLen / straight) : 0;  // >1.2 = 사람, ~1.0 = 봇 직선
+        }
+        var cts = BM.clickTs || [];
+        var gaps = [];
+        for (var j = 1; j < cts.length; j++) gaps.push(cts[j] - cts[j-1]);
+        var gapMean = 0, gapStd = 0;
+        if (gaps.length > 0) {
+            gapMean = gaps.reduce(function(a,b){return a+b},0) / gaps.length;
+            var sq = gaps.map(function(g){ return (g-gapMean)*(g-gapMean); });
+            gapStd = Math.sqrt(sq.reduce(function(a,b){return a+b},0) / gaps.length);
+        }
+        // V77: 패치 시퀀스 분석 (eBay MMBT 방식)
+        var pSeq = BM.patchSeq || [];
+        var uniquePatches = {};
+        for (var k = 0; k < pSeq.length; k++) uniquePatches[pSeq[k]] = true;
+        var uniquePatchCount = Object.keys(uniquePatches).length;
+        // V77: 페이지 탐색 엔트로피
+        var paths = BM.visitedPaths || {};
+        var pathKeys = Object.keys(paths);
+        var uniquePathCount = pathKeys.length;
+        var totalPV = 0;
+        for (var pk = 0; pk < pathKeys.length; pk++) totalPV += paths[pathKeys[pk]];
+        var pathEntropy = 0;
+        if (totalPV > 0) {
+            for (var pk2 = 0; pk2 < pathKeys.length; pk2++) {
+                var p = paths[pathKeys[pk2]] / totalPV;
+                if (p > 0) pathEntropy -= p * Math.log(p) / Math.log(2);
+            }
+        }
+        return {
+            curvRatio: +curvRatio.toFixed(2),
+            mousePts: pts.length,
+            clicks: cts.length,
+            gapStd: Math.round(gapStd),
+            touches: BM.touchCount || 0,
+            scrollSamples: (BM.scrollSpeeds || []).length,
+            mouseDist: Math.round(BM.mouseMoveDist || 0),
+            patchSeqLen: pSeq.length,
+            uniquePatches: uniquePatchCount,
+            uniquePaths: uniquePathCount,
+            pathEntropy: +pathEntropy.toFixed(2)
+        };
+    } catch(e) { return { err: 1 }; }
 }
 // V26: 재시도 메커니즘 — VISIT/BLOCK 등 중요 액션 유실 방지
 function sendToServer(x, _retry) {
@@ -487,11 +557,7 @@ function sendToServer(x, _retry) {
     .then(function(d) {
         if (d && d.error === 'rate_limit' && retries < 2) { setTimeout(function() { sendToServer(x, retries + 1) }, 2000 * (retries + 1)); }
         // V30: VISIT 응답에서 wl_nonce 추출 (WHITELIST 검증용)
-        if (d && d.wl_nonce) {
-            S.wlNonce = d.wl_nonce; S.wlNonceTime = Date.now();
-            // V85.19: sessionStorage에 저장 — 같은 세션 새 페이지 로드 시 복원
-            try { sessionStorage.setItem('naf_wlNonce', d.wl_nonce); sessionStorage.setItem('naf_wlNonceTime', String(S.wlNonceTime)); } catch (e) {}
-        }
+        if (d && d.wl_nonce) { S.wlNonce = d.wl_nonce; S.wlNonceTime = Date.now(); }
         // V29: PAGEVIEW/VISIT 응답에서 차단 감지 시 즉시 차단 화면 표시
         if (d && d.blocked && !S.isWhitelisted && !S.isBlocked) {
             S.isBlocked = true; persistBlock(S.uid); renderAccessDenied();
@@ -601,7 +667,7 @@ async function initAntifraud() {
 
     // VISIT dedup (sessionStorage — 탭 닫으면 자동 삭제)
     var vk = 'naf_vt_' + S.uid + '_' + S.sessionStart;
-    if (!sessionStorage.getItem(vk) && S.uid) { sessionStorage.setItem(vk, '1'); sendToServer({ action: 'VISIT' }) }
+    if (!sessionStorage.getItem(vk) && S.uid) { sessionStorage.setItem(vk, '1'); try { BM.visitedPaths[location.pathname || '/'] = (BM.visitedPaths[location.pathname || '/']||0) + 1; } catch(e) {} sendToServer({ action: 'VISIT' }) }
     setupSPAListener();
 
     // V21: NO_INTERACTION — 점수 누적만 유지, 차단 삭제
@@ -620,7 +686,7 @@ async function initAntifraud() {
 function setupSPAListener() {
     if (window._nafSPA) return; window._nafSPA = 1;
     var lu = location.href;
-    function on() { if (location.href === lu) return; lu = location.href; S.pageViews++; try { localStorage.setItem('naf_pv_' + S.uid, String(S.pageViews)) } catch (e) { } sendToServer({ action: 'PAGEVIEW' }) }
+    function on() { if (location.href === lu) return; lu = location.href; S.pageViews++; try { localStorage.setItem('naf_pv_' + S.uid, String(S.pageViews)) } catch (e) { } try { BM.visitedPaths[location.pathname || '/'] = (BM.visitedPaths[location.pathname || '/']||0) + 1; } catch(e) {} sendToServer({ action: 'PAGEVIEW' }) }
     var _p = history.pushState, _r = history.replaceState;
     history.pushState = function () { _p.apply(this, arguments); on() };
     history.replaceState = function () { _r.apply(this, arguments); on() };
