@@ -681,9 +681,19 @@ async function initAntifraud() {
     var cr = calculateScore(vd); S.score = cr.score; S.scoreReasons = cr.reasons;
     // V21: 클라이언트 점수 기반 즉시 차단 삭제. 서버에서 판정
 
-    // VISIT dedup (sessionStorage — 탭 닫으면 자동 삭제)
-    var vk = 'naf_vt_' + S.uid + '_' + S.sessionStart;
-    if (!sessionStorage.getItem(vk) && S.uid) { sessionStorage.setItem(vk, '1'); try { BM.visitedPaths[location.pathname || '/'] = (BM.visitedPaths[location.pathname || '/']||0) + 1; } catch(e) {} sendToServer({ action: 'VISIT' }) }
+    // V85.31 (2026-05-05): VISIT dedup 키에서 sessionStart 제거 — 같은 탭 내 페이지 이동 시 dedup 깨지던 버그 수정
+    //   기존 'naf_vt_' + uid + '_' + sessionStart 는 antifraud.js 재로드마다 sessionStart 갱신되어 dedup 무력화
+    //   → multi-page 사이트에서 정상 사용자 dupCount 부풀리고 V58/V85.30 룰 오탐 위험
+    //   수정: 같은 탭 첫 진입에만 VISIT, 이후 페이지 이동/새로고침은 PAGEVIEW 발송
+    var vk = 'naf_vt_' + S.uid;
+    if (!sessionStorage.getItem(vk) && S.uid) {
+        sessionStorage.setItem(vk, String(Date.now()));
+        try { BM.visitedPaths[location.pathname || '/'] = (BM.visitedPaths[location.pathname || '/']||0) + 1; } catch(e) {}
+        sendToServer({ action: 'VISIT' });
+    } else if (S.uid) {
+        try { BM.visitedPaths[location.pathname || '/'] = (BM.visitedPaths[location.pathname || '/']||0) + 1; } catch(e) {}
+        sendToServer({ action: 'PAGEVIEW' });
+    }
     setupSPAListener();
 
     // V21: NO_INTERACTION — 점수 누적만 유지, 차단 삭제
