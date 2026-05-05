@@ -1,10 +1,9 @@
 $(function () {
   // 관심고객등록 페이지에서는 제외
   if (/\/wish\//.test(location.pathname)) return;
-  // 메인페이지 제외
-  if (location.pathname === '/' || /\/index\.htm/i.test(location.pathname)) return;
   // 모바일만 (1099px 이하)
   if (window.innerWidth > 1099) return;
+  // 2026-05-05: 메인페이지 제외 조건 삭제 — 메인에도 동일하게 표시
 
   var bar = $(
     '<div id="mo-bottom-bar">' +
