@@ -240,9 +240,9 @@ export default async function handler(req, res) {
     );
 
     // V83-BATCH-C: 부정클릭 GAS 백업 WL 등재 (antifraud.js postMessage 끊김 안전망)
-    if (body.naf_uid && /^DEV_[A-F0-9]{24}$/.test(body.naf_uid)) {
+    if (WL_BRIDGE_SECRET && body.naf_uid && /^DEV_[A-F0-9]{24}$/.test(body.naf_uid)) {
       const NAF_GAS_URL = 'https://script.google.com/macros/s/AKfycbwEENIblM0NCX7uQn-zVOY1IcwNj7aboQw98ZVWJ1dmrwDIs3S4QgF2Gv3smBhaIQxmqQ/exec';
-      const WL_BRIDGE_SECRET = process.env.WL_BRIDGE_SECRET || 'wls_20260415_cross_gas_bridge';
+      const WL_BRIDGE_SECRET = process.env.WL_BRIDGE_SECRET;
       waitUntil(
         fetch(NAF_GAS_URL, {
           method: 'POST',
