@@ -83,8 +83,8 @@ async function insertToSupabase(data) {
   const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/registrations`, {
     method: 'POST',
     headers: {
-      'apikey': process.env.SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+      'apikey': (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY),
+      'Authorization': `Bearer ${(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY)}`,
       'Content-Type': 'application/json',
       'Prefer': 'return=representation'
     },
@@ -99,8 +99,8 @@ async function updateSyncStatus(id, updates) {
   await fetch(`${process.env.SUPABASE_URL}/rest/v1/registrations?id=eq.${id}`, {
     method: 'PATCH',
     headers: {
-      'apikey': process.env.SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+      'apikey': (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY),
+      'Authorization': `Bearer ${(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY)}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(updates)
@@ -144,10 +144,10 @@ export default async function handler(req, res) {
     device_fp: body.device_fp, kakao_id: body.kakao_id
   });
   if (blHit) {
-    if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+    if (process.env.SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY)) {
       await fetch(`${process.env.SUPABASE_URL}/rest/v1/registrations`, {
         method: 'POST',
-        headers: { apikey: process.env.SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+        headers: { apikey: (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY), Authorization: `Bearer ${(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY)}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           site_domain: 'xn--9m1b56qknena672c9xaj2f8zko8o45b.com', reg_datetime: formattedDate,
           name: body.name.trim(), phone: body.phone,
@@ -197,7 +197,7 @@ export default async function handler(req, res) {
         String(fiveMinAgo.getUTCMinutes()).padStart(2, '0');
       const dupCheck = await fetch(
         `${process.env.SUPABASE_URL}/rest/v1/registrations?name=eq.${encodeURIComponent(body.name.trim())}&phone=eq.${encodeURIComponent(body.phone)}&reg_datetime=gte.${encodeURIComponent(sinceStr)}&select=id&limit=1`,
-        { headers: { 'apikey': process.env.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}` } }
+        { headers: { 'apikey': (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY), 'Authorization': `Bearer ${(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY)}` } }
       );
       if (dupCheck.ok) {
         const existing = await dupCheck.json();

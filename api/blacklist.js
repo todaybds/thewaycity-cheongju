@@ -15,7 +15,7 @@ const normalizeName = (n) => String(n || '').trim();
  */
 export async function checkBlacklist({ name, phone, ip, device_fp, kakao_id }) {
   const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
   if (!url || !key) return null;
 
   try {
