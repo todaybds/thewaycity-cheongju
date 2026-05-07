@@ -187,7 +187,8 @@ export default async function handler(req, res) {
       suspect_flag: suspectFlag
     };
 
-    // 0. 서버측 중복 방지: 같은 이름+전화번호 5분 이내 재등록 차단
+    // [DEDUP] 5분 윈도우 + (phone + visit_date + visit_time) 조합
+    // 같은 정보 더블 클릭 차단, 방문날짜/시간 변경 재등록은 통과
     try {
       const fiveMinAgo = new Date(now.getTime() - 300000);
       const sinceStr = fiveMinAgo.getUTCFullYear() + '-' +
@@ -195,15 +196,25 @@ export default async function handler(req, res) {
         String(fiveMinAgo.getUTCDate()).padStart(2, '0') + ' ' +
         String(fiveMinAgo.getUTCHours()).padStart(2, '0') + ':' +
         String(fiveMinAgo.getUTCMinutes()).padStart(2, '0');
-      const dupCheck = await fetch(
-        `${process.env.SUPABASE_URL}/rest/v1/registrations?name=eq.${encodeURIComponent(body.name.trim())}&phone=eq.${encodeURIComponent(body.phone)}&reg_datetime=gte.${encodeURIComponent(sinceStr)}&select=id&limit=1`,
-        { headers: { 'apikey': (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY), 'Authorization': `Bearer ${(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY)}` } }
-      );
+      const _vDate = payload.date || "";
+      const _vTime = payload.time || "";
+      const dedupKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY);
+      const q = `${process.env.SUPABASE_URL}/rest/v1/registrations`
+        + `?site_domain=eq.xn--9m1b56qknena672c9xaj2f8zko8o45b.com`
+        + `&phone=eq.${encodeURIComponent(body.phone)}`
+        + `&visit_date=eq.${encodeURIComponent(_vDate)}`
+        + `&visit_time=eq.${encodeURIComponent(_vTime)}`
+        + `&reg_datetime=gte.${encodeURIComponent(sinceStr)}`
+        + `&select=id&limit=1`;
+      const dupCheck = await fetch(q, { headers: { 'apikey': dedupKey, 'Authorization': `Bearer ${dedupKey}` } });
       if (dupCheck.ok) {
         const existing = await dupCheck.json();
-        if (existing.length > 0) return res.status(200).json({ success: true, id: existing[0].id, deduplicated: true });
+        if (existing.length > 0) {
+          console.log('[dedup] hit', { phone: body.phone, vDate: _vDate, vTime: _vTime, existingId: existing[0].id });
+          return res.status(200).json({ success: true, id: existing[0].id, deduped: true });
+        }
       }
-    } catch (e) {}
+    } catch (e) { console.error('[dedup-check]', e.message); }
 
     // 1. Supabase에 즉시 저장 (빠름 ~100-200ms)
     const regId = await insertToSupabase({
