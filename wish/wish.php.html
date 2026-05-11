@@ -285,8 +285,8 @@ $(function() {
 .guest-wrap .form-input.error input::placeholder{color:#FF4040}
 /* 2026-05-11: 전화번호 분리입력 (오산/수자인 패턴) */
 .guest-wrap .phone-row{display:flex;align-items:center;gap:6px;width:100%;max-width:350px}
-.guest-wrap .phone-row select{flex:0 0 auto;width:75px;text-align:center;text-align-last:center}
 .guest-wrap .phone-row input{flex:1 1 0;text-align:center}
+.guest-wrap .phone-row input.hp-fixed{flex:0 0 auto;width:55px;color:#666;cursor:default;background:transparent}
 .guest-wrap .phone-row .hp-sep{color:#999;flex:0 0 auto}
 .guest-wrap .consent-row.error{color:#FF4040}
 .guest-wrap .submit-btn{width:100%;max-width:400px;height:60px;background:#15233d;border:none;color:#fff;font-size:17px;font-weight:600;cursor:pointer;transition:all 0.3s;-webkit-appearance:none;appearance:none;border-radius:6px;font-family:'Noto Sans KR',sans-serif;letter-spacing:0.03em}
@@ -330,7 +330,7 @@ $(function() {
 		<label class="form-label" for="hp2">휴대전화 <span class="req">*</span></label>
 		<div class="form-input">
 			<div class="phone-row">
-				<select id="hp1"><option value="010">010</option></select>
+				<input type="text" id="hp1" class="hp-fixed" value="010" readonly tabindex="-1" aria-label="앞자리 010 고정">
 				<span class="hp-sep">-</span>
 				<input type="tel" id="hp2" maxlength="4" inputmode="numeric" placeholder="1234"
 					oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4);if(this.value.length===4)document.getElementById('hp3').focus();">
