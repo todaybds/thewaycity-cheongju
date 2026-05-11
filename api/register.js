@@ -123,8 +123,10 @@ export default async function handler(req, res) {
   if (!body.name || body.name.length < 2) {
     return res.status(400).json({ error: "이름을 2자 이상 입력해주세요." });
   }
-  if (!body.phone || body.phone.replace(/[^0-9]/g, '').length < 10) {
-    return res.status(400).json({ error: "연락처를 정확히 입력해주세요." });
+  // 2026-05-11: 11자리 010 시작 강제 (5/9 칸타빌 010-0105-2365 사고 후 6사이트 공통 서버 가드)
+  const _phoneDigits = body.phone ? String(body.phone).replace(/[^0-9]/g, '') : '';
+  if (_phoneDigits.length !== 11 || !_phoneDigits.startsWith('010')) {
+    return res.status(400).json({ error: "전화번호 형식 오류 (11자리 010 시작)" });
   }
 
   let suspectFlag = null;

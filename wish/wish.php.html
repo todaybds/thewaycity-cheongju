@@ -323,7 +323,7 @@ $(function() {
 	</div>
 	<div class="form-row">
 		<label class="form-label" for="phone">휴대전화 <span class="req">*</span></label>
-		<div class="form-input"><input type="tel" id="phone" maxlength="13" placeholder="핸드폰번호를 입력해주세요" inputmode="numeric"></div>
+		<div class="form-input"><input type="tel" id="phone" maxlength="13" placeholder="010-1234-5678" inputmode="numeric"></div>
 	</div>
 	<div class="form-row">
 		<div class="form-label">관심평형</div>
@@ -440,21 +440,23 @@ document.getElementById('name').addEventListener('input', function(){ this.close
 document.getElementById('phone').addEventListener('input', function(){ this.closest('.form-input').classList.remove('error'); });
 document.querySelectorAll('input[name="agree"]').forEach(function(r){ r.addEventListener('change', function(){ document.querySelector('.consent-row').classList.remove('error'); }); });
 
-// 전화번호: 010- 고정, 자동 하이픈
-document.getElementById('phone').addEventListener('focus', function() {
-	if(this.value === '') this.value = '010-';
-});
+// 2026-05-11: 010- prefill 제거 + silent truncate 차단 (칸타빌 5/9 사고 동일 패턴 예방)
+//   원인: prefill "010-" 위 본인 010 포함 입력 시 startsWith("010") 안전망 우회 → 마지막 4자리 잘림
+//   조치: prefill 제거 (placeholder만), 11자리 초과 시 alert, +82/010 중복 정리
 document.getElementById('phone').addEventListener('input', function() {
-	var num = this.value.replace(/[^0-9]/g, '');
-	if(!num.startsWith('010')) num = '010' + num.replace(/^0?1?0?/, '');
+	var n = this.value.replace(/[^0-9]/g, '');
+	n = n.replace(/^82/, '');
+	n = n.replace(/^010+/, '');
+	if (n.length > 8) {
+		alert('전화번호는 010 제외 8자리(전체 11자리)만 입력하세요.');
+		n = n.substring(0, 8);
+	}
+	n = '010' + n;
 	var fmt = '';
-	if(num.length < 4) fmt = num;
-	else if(num.length < 8) fmt = num.substr(0,3) + '-' + num.substr(3);
-	else fmt = num.substr(0,3) + '-' + num.substr(3,4) + '-' + num.substr(7,4);
+	if(n.length < 4) fmt = n;
+	else if(n.length < 8) fmt = n.substr(0,3) + '-' + n.substr(3);
+	else fmt = n.substr(0,3) + '-' + n.substr(3,4) + '-' + n.substr(7,4);
 	this.value = fmt;
-});
-document.getElementById('phone').addEventListener('keydown', function(e) {
-	if(this.value.length <= 4 && (e.key === 'Backspace' || e.key === 'Delete')) { e.preventDefault(); }
 });
 
 var isSubmitting = false;
