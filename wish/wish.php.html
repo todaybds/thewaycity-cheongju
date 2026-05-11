@@ -283,6 +283,11 @@ $(function() {
 .guest-wrap .success-msg p{font-size:15px;color:#888;line-height:1.6;margin:0}
 .guest-wrap .form-input.error{border-bottom:2px solid #FF4040}
 .guest-wrap .form-input.error input::placeholder{color:#FF4040}
+/* 2026-05-11: 전화번호 분리입력 (오산/수자인 패턴) */
+.guest-wrap .phone-row{display:flex;align-items:center;gap:6px;width:100%;max-width:350px}
+.guest-wrap .phone-row select{flex:0 0 auto;width:75px;text-align:center;text-align-last:center}
+.guest-wrap .phone-row input{flex:1 1 0;text-align:center}
+.guest-wrap .phone-row .hp-sep{color:#999;flex:0 0 auto}
 .guest-wrap .consent-row.error{color:#FF4040}
 .guest-wrap .submit-btn{width:100%;max-width:400px;height:60px;background:#15233d;border:none;color:#fff;font-size:17px;font-weight:600;cursor:pointer;transition:all 0.3s;-webkit-appearance:none;appearance:none;border-radius:6px;font-family:'Noto Sans KR',sans-serif;letter-spacing:0.03em}
 .guest-wrap .submit-btn:hover{background:#1e3258}
@@ -322,8 +327,18 @@ $(function() {
 		<div class="form-input"><input type="text" id="name" maxlength="20" placeholder="이름을 입력해주세요." inputmode="text" lang="ko"></div>
 	</div>
 	<div class="form-row">
-		<label class="form-label" for="phone">휴대전화 <span class="req">*</span></label>
-		<div class="form-input"><input type="tel" id="phone" maxlength="13" placeholder="010-1234-5678" inputmode="numeric"></div>
+		<label class="form-label" for="hp2">휴대전화 <span class="req">*</span></label>
+		<div class="form-input">
+			<div class="phone-row">
+				<select id="hp1"><option value="010">010</option></select>
+				<span class="hp-sep">-</span>
+				<input type="tel" id="hp2" maxlength="4" inputmode="numeric" placeholder="1234"
+					oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4);if(this.value.length===4)document.getElementById('hp3').focus();">
+				<span class="hp-sep">-</span>
+				<input type="tel" id="hp3" maxlength="4" inputmode="numeric" placeholder="5678"
+					oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)">
+			</div>
+		</div>
 	</div>
 	<div class="form-row">
 		<div class="form-label">관심평형</div>
@@ -437,52 +452,39 @@ $(function() {
 
 // 입력 시 에러 표시 제거
 document.getElementById('name').addEventListener('input', function(){ this.closest('.form-input').classList.remove('error'); });
-document.getElementById('phone').addEventListener('input', function(){ this.closest('.form-input').classList.remove('error'); });
 document.querySelectorAll('input[name="agree"]').forEach(function(r){ r.addEventListener('change', function(){ document.querySelector('.consent-row').classList.remove('error'); }); });
 
-// 2026-05-11: 010- prefill 제거 + silent truncate 차단 (칸타빌 5/9 사고 동일 패턴 예방)
-//   원인: prefill "010-" 위 본인 010 포함 입력 시 startsWith("010") 안전망 우회 → 마지막 4자리 잘림
-//   조치: prefill 제거 (placeholder만), 11자리 초과 시 alert, +82/010 중복 정리
-document.getElementById('phone').addEventListener('input', function() {
-	var n = this.value.replace(/[^0-9]/g, '');
-	n = n.replace(/^82/, '');
-	n = n.replace(/^010+/, '');
-	if (n.length > 8) {
-		alert('전화번호는 010 제외 8자리(전체 11자리)만 입력하세요.');
-		n = n.substring(0, 8);
-	}
-	n = '010' + n;
-	var fmt = '';
-	if(n.length < 4) fmt = n;
-	else if(n.length < 8) fmt = n.substr(0,3) + '-' + n.substr(3);
-	else fmt = n.substr(0,3) + '-' + n.substr(3,4) + '-' + n.substr(7,4);
-	this.value = fmt;
+// 2026-05-11: 분리입력 패턴(오산/수자인) 마이그레이션 — silent truncate 사고 클래스 제거
+['hp2','hp3'].forEach(function(id){
+	document.getElementById(id).addEventListener('input', function(){ this.closest('.form-input').classList.remove('error'); });
 });
 
 var isSubmitting = false;
 function submitForm() {
 	if(isSubmitting) return;
 
-	// 클라이언트측 5분 중복 방지
+	// 2026-05-11: 분리입력 hp2/hp3 4자리씩 검증 후 phone 조립
 	var _name = document.getElementById('name').value.trim();
-	var _phone = document.getElementById('phone').value.trim();
+	var _hp2 = document.getElementById('hp2').value.replace(/[^0-9]/g, '');
+	var _hp3 = document.getElementById('hp3').value.replace(/[^0-9]/g, '');
+	var _phone = (_hp2.length === 4 && _hp3.length === 4) ? ('010-' + _hp2 + '-' + _hp3) : '';
 	var _regKey = _name + '|' + _phone;
 	var _lastKey = localStorage.getItem('last_reg_key');
 	var _lastTime = parseInt(localStorage.getItem('last_reg_time') || '0');
-	if (_lastKey === _regKey && (Date.now() - _lastTime) < 300000) {
+	if (_phone && _lastKey === _regKey && (Date.now() - _lastTime) < 300000) {
 		alert('이미 등록이 완료되었습니다.\n담당자가 빠른 시일 내에 연락드리겠습니다.');
 		return;
 	}
-	var name = document.getElementById('name').value.trim();
-	var phone = document.getElementById('phone').value.trim();
+	var name = _name;
+	var phone = _phone;
 	var consentRadio = document.querySelector('input[name="agree"]:checked');
 
 	$('.form-input.error').removeClass('error'); $('.consent-row.error').removeClass('error');
 	var hasError = false;
 	if(!name || name.length < 2) { document.getElementById('name').closest('.form-input').classList.add('error'); if(!hasError){document.getElementById('name').focus();} hasError=true; }
-	if(phone.length < 12) { document.getElementById('phone').closest('.form-input').classList.add('error'); if(!hasError){document.getElementById('phone').focus();} hasError=true; }
+	if(_hp2.length !== 4 || _hp3.length !== 4) { document.getElementById('hp2').closest('.form-input').classList.add('error'); if(!hasError){document.getElementById('hp2').focus();} hasError=true; }
 	if(!consentRadio || consentRadio.value === '거부') { document.querySelector('.consent-row').classList.add('error'); hasError=true; }
-	if(hasError) { alert(!name||name.length<2?'이름을 2자 이상 입력해주세요.':phone.length<12?'연락처를 정확히 입력해주세요.':'개인정보 수집 및 이용에 동의해주세요.'); return; }
+	if(hasError) { alert(!name||name.length<2?'이름을 2자 이상 입력해주세요.':(_hp2.length!==4||_hp3.length!==4)?'연락처를 정확히 입력해주세요 (010-1234-5678).':'개인정보 수집 및 이용에 동의해주세요.'); return; }
 
 	isSubmitting = true;
 	var btn = document.getElementById('submitBtn');
@@ -521,7 +523,7 @@ function submitForm() {
 	localStorage.setItem('last_reg_key', _regKey);
 	localStorage.setItem('last_reg_time', String(Date.now()));
 	try { window.postMessage({ type: 'DB_REGISTERED', action: 'formSubmitted' }, '*'); } catch(e) {}
-	try { if(typeof fbq !== 'undefined') { var _ph = document.getElementById('phone').value.replace(/[^0-9]/g,''); var _fn = document.getElementById('name').value.trim(); fbq('init', '632260369616595', { ph: _ph, fn: _fn }); fbq('track', 'Lead', { value: 0.00, currency: 'KRW' }, { eventID: _eid }); } } catch(e) {}
+	try { if(typeof fbq !== 'undefined') { var _ph = phone.replace(/[^0-9]/g,''); var _fn = document.getElementById('name').value.trim(); fbq('init', '632260369616595', { ph: _ph, fn: _fn }); fbq('track', 'Lead', { value: 0.00, currency: 'KRW' }, { eventID: _eid }); } } catch(e) {}
 	try { if(window.wcs) { var _conv = {}; _conv.type = 'lead'; wcs.trans(_conv); } } catch(e) {}
 	try { if(typeof gtag !== 'undefined') gtag('event', 'generate_lead', { currency: 'KRW', value: 0 }); } catch(e) {}
 
@@ -530,7 +532,8 @@ function submitForm() {
 	// 폼 초기화
 	try {
 		document.getElementById('name').value = '';
-		document.getElementById('phone').value = '';
+		document.getElementById('hp2').value = '';
+		document.getElementById('hp3').value = '';
 		document.querySelectorAll('input[name="interest"]:checked').forEach(function(c){ c.checked = false; });
 		document.getElementById('visitDate').value = '';
 		document.getElementById('visitTime').value = '';
@@ -638,7 +641,7 @@ if(window.wcs) {
     if(started) return; started = true;
     dataLayer.push({event:'form_start', site_key:'cheongju', funnel_stage:2, value:5});
   }
-  ['#name','#phone'].forEach(function(sel){
+  ['#name','#hp2','#hp3'].forEach(function(sel){
     var el = document.querySelector(sel);
     if(el) el.addEventListener('focus', pushStart, {once:true});
   });
